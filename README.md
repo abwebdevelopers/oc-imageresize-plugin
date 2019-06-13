@@ -1,7 +1,6 @@
-# Image Resize
+# October CMS Image Resize Plugin
 
-Resize and transform image on the fly in twig
-
+Resize and transform image on the fly in twig/October CMS
 
 
 ## Requirements
