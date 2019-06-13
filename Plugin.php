@@ -10,8 +10,8 @@ class Plugin extends PluginBase
     public function pluginDetails()
     {
         return [
-            'name' => 'abwebdevelopers.imagresize::lang.plugin.name',
-            'description' => 'abwebdevelopers.imagresize::lang.plugin.description',
+            'name' => 'abwebdevelopers.imageresize::lang.plugin.name',
+            'description' => 'abwebdevelopers.imageresize::lang.plugin.description',
             'author' => 'AB Web Developers',
             'icon' => 'icon-files-o',
             'homepage' => 'https://abweb.com.au'
