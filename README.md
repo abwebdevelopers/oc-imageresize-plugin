@@ -7,7 +7,7 @@ Resize and transform image on the fly in twig
 ## Requirements
 
 - October CMS
-- PHP >= 5.4
+- PHP >= 7.0
 - Fileinfo Extension
 - GD Library (>= 2.0) **or** Imagick PHP extension (>= 6.5.7)
 
