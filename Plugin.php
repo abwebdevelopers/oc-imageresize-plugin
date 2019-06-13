@@ -1,4 +1,5 @@
 <?php
+
 namespace ABWebDevelopers\ImageResize;
 
 use System\Classes\PluginBase;

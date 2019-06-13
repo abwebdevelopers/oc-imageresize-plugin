@@ -388,7 +388,7 @@ class Resizer
         switch ($format) {
             case 'png':
                 // Determine if png had alpha channel
-                return (ord(@file_get_contents($this->image, NULL, NULL, 25, 1)) == 6);
+                return (ord(@file_get_contents($this->image, NULL, NULL, 25, 1)) === 6);
                 break;
             default:
                 // otherwise false
@@ -464,7 +464,7 @@ class Resizer
         $data = [];
         $rules = [];
         foreach ($this->options as $key => $value) {
-            if (in_array($key, array_keys($availableOptions))) {
+            if (array_key_exists($key, $availableOptions)) {
                 $data[$key] = $value;
                 $rules[$key] = $availableOptions[$key]['rules'];
             }
