@@ -14,7 +14,7 @@ class Plugin extends PluginBase
             'name' => 'abwebdevelopers.imageresize::lang.plugin.name',
             'description' => 'abwebdevelopers.imageresize::lang.plugin.description',
             'author' => 'AB Web Developers',
-            'icon' => 'icon-files-o',
+            'icon' => 'icon-file-image-o',
             'homepage' => 'https://abweb.com.au'
         ];
     }
