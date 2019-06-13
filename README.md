@@ -14,8 +14,8 @@ Resize and transform image on the fly in twig
 
 ## Getting started
 
-- [Installation (into October CMS)]()
-- [October CMS usage]()
+- [Installation (into October CMS)](#installation-into-october-cms)
+- [October CMS usage](#october-cms-usage)
 
 
 ### Installation (into October CMS)
