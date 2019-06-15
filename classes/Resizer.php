@@ -3,7 +3,6 @@
 namespace ABWebDevelopers\ImageResize\Classes;
 
 use Intervention\Image\ImageManagerStatic as Image;
-use Intervention\Image\ImageManager;
 use Validator;
 use Exception;
 
