@@ -3,22 +3,19 @@
 namespace ABWebDevelopers\ImageResize\Classes;
 
 use Intervention\Image\ImageManagerStatic as Image;
-use Intervention\Image\ImageManager;
 use Validator;
 use Exception;
+use ABWebDevelopers\ImageResize\Models\Settings;
 
 class Resizer
 {
 
     /**
-     * Default options which are overridden by user-supplied options
+     * A list of computed values to override $options
      *
      * @var array
      */
-    protected $defaults = [
-        'mode' => 'auto',
-        'driver' => 'gd'
-    ];
+    protected $override = [];
 
     /**
      * The list of active options
@@ -62,13 +59,65 @@ class Resizer
      */
     protected $formatCache = [];
 
-    public function __construct($image)
+    /**
+     * Construct the resizer class
+     *
+     * @param string $image
+     */
+    public function __construct(string $image)
     {
-        if (preg_match('/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '\/storage\/(.+)$/', $image, $m)) {
-            $image = storage_path($m[1]);
+        $this->setImage($image);
+    }
+
+    /**
+     * Specify the image to use
+     *
+     * @param string $image
+     * @return void
+     */
+    public function setImage(string $image)
+    {
+        // Check if the image is an absolute url to the same server, if so get the storage path of the image
+        if (preg_match('/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '(?::\d+)?\/storage\/(.+)$/', $image, $m)) {
+            // Convert spaces, not going to urldecode as it will mess with pluses
+            $image = storage_path(str_replace('%20', ' ', $m[1]));
         }
 
+        // If the image is invalid, default to Image Not Found
+        if ($image === null || $image === '' || !file_exists($image)) {
+            $image = $this->getDefaultImage();
+        }
+
+        // Set the image
         $this->image = $image;
+    }
+
+    /**
+     * Retrieve the Image Not Found image
+     *
+     * @return string
+     */
+    protected function getDefaultImage()
+    {
+        // Retrieve the Image Not Found image from settings
+        $image = Settings::get('image_not_found');
+
+        // If available, apply it
+        if (!empty($image)) {
+            $image = base_path(ltrim(config('cms.storage.media.path'), '/')) . $image;
+        }
+
+        // If the image still doesn't exist, use the provided Image Not Found image
+        if (!$image || !file_exists($image)) {
+            $image = base_path('plugins/abwebdevelopers/imageresize/assets/image-not-found.png');
+        }
+
+        // Use the default Image Not Found background, mode and quality
+        $this->override['background'] = Settings::get('image_not_found_background', '#fff');
+        $this->override['mode'] = Settings::get('image_not_found_mode', 'cover');
+        $this->override['quality'] = Settings::get('image_not_found_quality', 65);
+
+        return $image;
     }
 
     /**
@@ -83,7 +132,11 @@ class Resizer
                 'driver' => $this->options['driver']
             ]);
 
-            $this->im = $this->original = Image::make($this->image);
+            try {
+                $this->im = $this->original = Image::make($this->image);
+            } catch (\Exception $e) {
+                $this->im = $this->original = Image::make($this->getDefaultImage());
+            }
         }
     }
 
@@ -112,6 +165,7 @@ class Resizer
                 }
             }
 
+            // A couple predefined presets (deprecated, use filters now)
             if (!empty($options['preset'])) {
                 switch ($options['preset']) {
                     case 'low':
@@ -130,12 +184,45 @@ class Resizer
                         break;
                 }
             }
+
+            // Check to see if a filter is being used for this image
+            if (!empty($options['filter'])) {
+                // If options were passed then use them to override any filters used
+                $this->override = array_merge($this->override, $options);
+
+                // Now find it
+                $availableFilters = Settings::get('filters');
+                foreach ($availableFilters as $filter) {
+                    if ($filter['code'] === $options['filter']) {
+                        // Found it, now apply the rules to the options
+                        foreach ($filter['rules'] as $rule) {
+                            $options[$rule['modifier']] = $rule['value'];
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // Apply overrides
+            if (!empty($this->override)) {
+                foreach ($this->override as $key => $value) {
+                    $options[$key] = $value;
+                }
+            }
         } else {
             $options = [];
         }
 
+        // Get defaults from settings
+        $defaults = [
+            'driver' => Settings::get('driver'),
+            'mode' => Settings::get('mode'),
+            'quality' => Settings::get('quality'),
+            'format' => Settings::get('format'),
+        ];
+
         // Merge defaults and options
-        $this->options = array_merge($this->defaults, $options);
+        $this->options = array_merge($defaults, $options);
 
         // Set hash based on image and options
         $this->hash = hash('sha256', $this->image . json_encode($this->options));
@@ -159,7 +246,7 @@ class Resizer
     private function storagePath()
     {
         // Get format from destination file (or original, if not specified)
-        list($mime, $format) = $this->detectFormat(true);
+        [$mime, $format] = $this->detectFormat(true);
         return 'app/uploads/public/' . substr($this->hash, 0, 3) . '/' . substr($this->hash, 3, 3) . '/' . substr($this->hash, 6, 3) . '/thumb_' . $this->hash . '.' . $format;
     }
 
@@ -223,23 +310,70 @@ class Resizer
             return $cached;
         }
 
+        $hasMinMaxConstraint = array_key_exists('min_height', $this->options) ||
+                                array_key_exists('max_height', $this->options) ||
+                                array_key_exists('min_width', $this->options) ||
+                                array_key_exists('max_width', $this->options);
+
         // Get the image resource entity if not already loaded
         $this->initResource();
 
         // If width or height is set, resize the image to it
-        if ($width !== null || $height !== null) {
+        if ($width !== null || $height !== null || $hasMinMaxConstraint) {
             $oheight = $this->original->height();
             $owidth = $this->original->width();
             $oratio = $owidth / $oheight;
 
-            $same = false;
+            // Will the dimensions be the same?
+            $same = ($width === null || $height === null);
 
-            if ($width === null) {
-                $same = true;
+            if ($width === null && $height !== null) {
+                // Only the height was given
+
+                if (!empty($this->options['min_height'])) {
+                    $height = max($this->options['min_height'], $height);
+                }
+
+                if (!empty($this->options['max_height'])) {
+                    $height = min($this->options['max_height'], $height);
+                }
+
                 $width = (int) ($height * $oratio);
-            } elseif ($height === null) {
-                $same = true;
+            } elseif ($height === null && $width !== null) {
+                // Only the width was given
+
+                if (!empty($this->options['min_width'])) {
+                    $width = max($this->options['min_width'], $width);
+                }
+
+                if (!empty($this->options['max_width'])) {
+                    $width = min($this->options['max_width'], $width);
+                }
+
                 $height = (int) ($width / $oratio);
+            } else {
+                if ($width === null && $height === null) {
+                    // Neither dimension was given, so pretend they were
+                    $height = $oheight;
+                    $width = $owidth;
+                }
+                // Both dimensions were given
+
+                if (!empty($this->options['min_width'])) {
+                    $width = max($this->options['min_width'], $width);
+                }
+
+                if (!empty($this->options['max_width'])) {
+                    $width = min($this->options['max_width'], $width);
+                }
+
+                if (!empty($this->options['min_height'])) {
+                    $height = max($this->options['min_height'], $height);
+                }
+
+                if (!empty($this->options['max_height'])) {
+                    $height = min($this->options['max_height'], $height);
+                }
             }
 
             // Determine the ratio, and whether or not its the same ratio thats being generated
@@ -309,7 +443,7 @@ class Resizer
         }
 
         // Get the format / mime to export to (either original, or overridden)
-        list($mime, $format) = $this->detectFormat(true);
+        [$mime, $format] = $this->detectFormat(true);
 
         // If it's exporting to a flat image and no background is set, and it was transparent to start off with..
         if ($format !== 'png' && $format !== 'webp' && empty($this->options['background']) && $this->detectAlpha()) {
@@ -338,7 +472,7 @@ class Resizer
         }
 
         // Determine whether or not to use the new format in
-        if ($useNewFormat && !empty($this->options['format'])) {
+        if ($useNewFormat && !empty($this->options['format']) && $this->options['format'] !== 'auto') {
             $format = $this->options['format'];
         } else {
             // Get the image resource entity if not already loaded
@@ -383,7 +517,7 @@ class Resizer
     private function detectAlpha()
     {
         // Get source file's format
-        list($mime, $format) = $this->detectFormat();
+        [$mime, $format] = $this->detectFormat();
 
         switch ($format) {
             case 'png':
@@ -496,7 +630,7 @@ class Resizer
                     $this->im = Image::canvas($this->im->width(), $this->im->height(), $value)->insert($this->im);
                     break;
                 case 'colorize':
-                    list($r, $g, $b) = explode(',', $value);
+                    [$r, $g, $b] = explode(',', $value);
                     $this->im->colorize($r, $g, $b);
                     break;
                 default:
@@ -509,5 +643,18 @@ class Resizer
                     break;
             }
         }
+    }
+
+    /**
+     * Render the image in the desired output format, exiting immediately after
+     * 
+     * @return void
+     */
+    public function render() {
+        [$mime, $format] = $this->detectFormat(true);
+
+        header('Content-Type: image/' . $mime);
+        echo $this->im->encode($format);
+        exit();
     }
 }
