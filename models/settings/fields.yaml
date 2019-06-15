@@ -1,0 +1,141 @@
+tabs:
+    fields:
+        driver:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.driver.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.fields.driver.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.main'
+            span: left
+            required: 1
+            type: dropdown
+            options:
+                gd: 'abwebdevelopers.imageresize::lang.settings.fields.driver.options.gd'
+                imagick: 'abwebdevelopers.imageresize::lang.settings.fields.driver.options.imagick'
+            default: gd
+        mode:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.mode.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.fields.mode.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.main'
+            span: right
+            required: 1
+            type: dropdown
+            options:
+                auto: 'abwebdevelopers.imageresize::lang.settings.fields.mode.options.auto'
+                contain: 'abwebdevelopers.imageresize::lang.settings.fields.mode.options.contain'
+                cover: 'abwebdevelopers.imageresize::lang.settings.fields.mode.options.cover'
+                stretch: 'abwebdevelopers.imageresize::lang.settings.fields.mode.options.stretch'
+            default: auto
+        format:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.format.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.fields.format.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.main'
+            span: right
+            required: 1
+            type: dropdown
+            options:
+                auto: 'abwebdevelopers.imageresize::lang.settings.fields.format.options.auto'
+                jpg: 'abwebdevelopers.imageresize::lang.settings.fields.format.options.jpg'
+                png: 'abwebdevelopers.imageresize::lang.settings.fields.format.options.png'
+                webp: 'abwebdevelopers.imageresize::lang.settings.fields.format.options.webp'
+                bmp: 'abwebdevelopers.imageresize::lang.settings.fields.format.options.bmp'
+                gif: 'abwebdevelopers.imageresize::lang.settings.fields.format.options.gif'
+                ico: 'abwebdevelopers.imageresize::lang.settings.fields.format.options.ico'
+            default: auto
+        background:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.background.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.fields.background.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.main'
+            span: left
+            type: colorpicker
+            default: '#ffffff'
+        _404:
+            type: section
+            label: 'abwebdevelopers.imageresize::lang.settings.sections._404.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.sections._404.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.main'
+        image_not_found:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.main'
+            span: left
+            type: mediafinder
+        image_not_found_background:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_background.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_background.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.main'
+            span: right
+            type: colorpicker
+            default: '#c9d5d3'
+        image_not_found_mode:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_mode.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_mode.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.main'
+            span: left
+            type: dropdown
+            options:
+                auto: 'abwebdevelopers.imageresize::lang.settings.fields.mode.options.auto'
+                contain: 'abwebdevelopers.imageresize::lang.settings.fields.mode.options.contain'
+                cover: 'abwebdevelopers.imageresize::lang.settings.fields.mode.options.cover'
+                stretch: 'abwebdevelopers.imageresize::lang.settings.fields.mode.options.stretch'
+            default: contain
+        image_not_found_quality:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_quality.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_quality.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.main'
+            span: right
+            type: text
+            default: 65
+        filters:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.filters.label'
+            prompt: 'abwebdevelopers.imageresize::lang.settings.fields.filters.prompt'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.filters'
+            type: repeater
+            form:
+                fields:
+                    code:
+                        label: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.code.label'
+                        comment: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.code.comment'
+                        type: text
+                        span: left
+                    description:
+                        label: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.description.label'
+                        comment: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.description.comment'
+                        type: text
+                        span: right
+                    rules:
+                        label: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.label'
+                        prompt: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.prompt'
+                        type: repeater
+                        form:
+                            fields:
+                                modifier:
+                                    label: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.label'
+                                    comment: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.comment'
+                                    type: dropdown
+                                    span: left
+                                    options:
+                                        width: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.width'
+                                        height: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.height'
+                                        min_width: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.min_width'
+                                        min_height: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.min_height'
+                                        max_width: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.max_width'
+                                        max_height: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.max_height'
+                                        blur: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.blur'
+                                        sharpen: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.sharpen'
+                                        brightness: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.brightness'
+                                        contrast: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.contrast'
+                                        pixelate: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.pixelate'
+                                        greyscale: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.greyscale'
+                                        invert: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.invert'
+                                        opacity: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.opacity'
+                                        rotate: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.rotate'
+                                        flip: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.flip'
+                                        background: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.background'
+                                        colorize: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.colorize'
+                                        format: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.format'
+                                        quality: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.quality'
+                                        mode: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.mode'
+                                value:
+                                    label: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.value.label'
+                                    comment: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.value.comment'
+                                    type: text
+                                    span: right

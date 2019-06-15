@@ -4,6 +4,7 @@ namespace ABWebDevelopers\ImageResize;
 
 use System\Classes\PluginBase;
 use ABWebDevelopers\ImageResize\Classes\Resizer;
+use Event;
 
 class Plugin extends PluginBase
 {
@@ -33,6 +34,33 @@ class Plugin extends PluginBase
                 }
             ]
         ];
+    }
+
+    public function registerSettings()
+    {
+        return [
+            'settings' => [
+                'label'       => 'abwebdevelopers.imageresize::lang.plugin.name',
+                'description' => 'Manage default settings for the Image Resizer plugin',
+                'category'    => 'Content',
+                'icon'        => 'icon-image',
+                'class'       => 'ABWebDevelopers\ImageResize\Models\Settings',
+                'order'       => 500,
+                'keywords'    => 'image resize resizing modify photo modifier'
+            ]
+        ];
+    }
+
+    public function boot() {
+        Event::listen('backend.page.beforeDisplay', function($controller, $action, $params) {
+            if ($controller instanceof \System\Controllers\Settings) {
+                // Check this is the settings page for this plugin:
+                if ($params === ['abwebdevelopers', 'imageresize', 'settings']) {
+                    // Add CSS (minor patch)
+                    $controller->addCss('/plugins/abwebdevelopers/imageresize/assets/settings-patch.css');
+                }
+            }
+        });
     }
 
 }
