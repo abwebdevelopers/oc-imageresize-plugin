@@ -306,7 +306,7 @@ class Resizer
         $this->initOptions($options);
 
         // Get cache if exists
-        if ($cached = $this->getCache() && false) {
+        if ($cached = $this->getCache()) {
             return $cached;
         }
 
