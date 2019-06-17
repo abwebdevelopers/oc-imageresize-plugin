@@ -35,6 +35,10 @@ return [
                     'stretch' => 'Stretch',
                 ],
             ],
+            'quality' => [
+                'label' => 'Default Output Quality',
+                'comment' => 'Default output quality for images (1-100)'
+            ],
             'image_not_found' => [
                 'label' => '404 Image Source',
                 'comment' => 'Select a different image to be displayed when images are not found',
@@ -46,6 +50,10 @@ return [
             'image_not_found_mode' => [
                 'label' => '404 Image Resize Mode',
                 'comment' => 'Resizing mode for image above',
+            ],
+            'image_not_found_format' => [
+                'label' => '404 Image Format',
+                'comment' => 'Output format for image above',
             ],
             'image_not_found_quality' => [
                 'label' => '404 Image Quality',

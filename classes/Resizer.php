@@ -109,7 +109,7 @@ class Resizer
 
         // If the image still doesn't exist, use the provided Image Not Found image
         if (!$image || !file_exists($image)) {
-            $image = base_path('plugins/abwebdevelopers/imageresize/assets/image-not-found.png');
+            $image = base_path(Settings::DEFAULT_IMAGE_NOT_FOUND);
         }
 
         // Use the default Image Not Found background, mode and quality
@@ -188,6 +188,7 @@ class Resizer
             // Check to see if a filter is being used for this image
             if (!empty($options['filter'])) {
                 // If options were passed then use them to override any filters used
+                $options = array_filter($options);
                 $this->override = array_merge($this->override, $options);
 
                 // Now find it
@@ -231,7 +232,7 @@ class Resizer
     /**
      * Get the physical path of the image
      *
-     * @return void
+     * @return string
      */
     public function getPath()
     {
@@ -241,7 +242,7 @@ class Resizer
     /**
      * Get the storage path - used for public access and for physical path generation
      *
-     * @return void
+     * @return string
      */
     private function storagePath()
     {
@@ -257,6 +258,11 @@ class Resizer
      */
     public function getCache()
     {
+        // If explicitly told to not cache, don't cache it then
+        if (isset($this->options['cache']) && !$this->options['cache']) {
+            return false;
+        }
+
         $path = $this->storagePath();
 
         if (file_exists(storage_path($path))) {
@@ -310,6 +316,9 @@ class Resizer
             return $cached;
         }
 
+        $width = $this->options['width'];
+        $height = $this->options['height'];
+
         $hasMinMaxConstraint = array_key_exists('min_height', $this->options) ||
                                 array_key_exists('max_height', $this->options) ||
                                 array_key_exists('min_width', $this->options) ||
@@ -319,7 +328,7 @@ class Resizer
         $this->initResource();
 
         // If width or height is set, resize the image to it
-        if ($width !== null || $height !== null || $hasMinMaxConstraint) {
+        if (($width !== null) || ($height !== null) || $hasMinMaxConstraint) {
             $oheight = $this->original->height();
             $owidth = $this->original->width();
             $oratio = $owidth / $oheight;
@@ -352,7 +361,7 @@ class Resizer
 
                 $height = (int) ($width / $oratio);
             } else {
-                if ($width === null && $height === null) {
+                if (($width === null) && ($height === null)) {
                     // Neither dimension was given, so pretend they were
                     $height = $oheight;
                     $width = $owidth;
@@ -388,7 +397,7 @@ class Resizer
             $fit = false;
 
             // Allow upsizing of the image? (default: false)
-            $allowUpsizing = !empty($this->options['upsize']) && (bool) $this->options['upsize'];
+            $allowUpsizing = (!empty($this->options['upsize']) && (bool) $this->options['upsize']);
 
             // Should the canvas be resized to the dimensions specified?
             $resizeCanvas = false;
@@ -446,7 +455,7 @@ class Resizer
         [$mime, $format] = $this->detectFormat(true);
 
         // If it's exporting to a flat image and no background is set, and it was transparent to start off with..
-        if ($format !== 'png' && $format !== 'webp' && empty($this->options['background']) && $this->detectAlpha()) {
+        if (($format !== 'png') && ($format !== 'webp') && empty($this->options['background']) && $this->detectAlpha()) {
             // Then fill in the background - Would be nice to guess the color but that's not my job
             $this->options['background'] = '#fff';
         }
@@ -472,7 +481,7 @@ class Resizer
         }
 
         // Determine whether or not to use the new format in
-        if ($useNewFormat && !empty($this->options['format']) && $this->options['format'] !== 'auto') {
+        if ($useNewFormat && !empty($this->options['format']) && ($this->options['format'] !== 'auto')) {
             $format = $this->options['format'];
         } else {
             // Get the image resource entity if not already loaded
@@ -647,7 +656,7 @@ class Resizer
 
     /**
      * Render the image in the desired output format, exiting immediately after
-     * 
+     *
      * @return void
      */
     public function render() {

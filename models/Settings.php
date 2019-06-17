@@ -11,9 +11,11 @@ class Settings extends Model
 
     use Validation;
 
+    const DEFAULT_IMAGE_NOT_FOUND = '/plugins/abwebdevelopers/imageresize/assets/image-not-found.png';
+
     /**
      * Implement settings model
-     * 
+     *
      * @var array
      */
     public $implement = [
@@ -22,36 +24,40 @@ class Settings extends Model
 
     /**
      * Define settings code
-     * 
+     *
      * @var string
      */
     public $settingsCode = 'abwebdevelopers_imageresize';
 
     /**
      * Define settings fields
-     * 
+     *
      * @var string
      */
     public $settingsFields = 'fields.yaml';
 
     /**
      * Define validation rules for settings
-     * 
+     *
      * @var array
      */
     public $rules = [
         'driver' => 'required|string|in:gd,imagick',
-        'mode' => 'required|string|in:auto,cover,contain,stretch',
-        'image_not_found' => 'nullable|string',
-        'format' => 'required|string|in:auto,jpg,png,bmp,gif,ico,webp',
         'background' => 'required|string|regex:/^#([a-f0-9]{3}){1,2}$/i',
+        'mode' => 'required|string|in:auto,cover,contain,stretch',
+        'quality' => 'required|min:1|max:100',
+        'format' => 'required|string|in:auto,jpg,png,bmp,gif,ico,webp',
         'filters.*.modifier' => 'in:width,height,min_width,min_height,max_width,max_height,blur,sharpen,brightness,contrast,pixelate,greyscale,invert,opacity,rotate,flip,background,colorize,format,quality,mode',
-        'filters.*.value' => 'string|min:0|max:10'
+        'filters.*.value' => 'string|min:0|max:10',
+        'image_not_found' => 'nullable',
+        'image_not_found_background' => 'required|regex:/^#([a-f0-9]{3}){1,2}$/i',
+        'image_not_found_mode' => 'required|in:auto,cover,contain,stretch',
+        'image_not_found_quality' => 'required|min:1|max:100',
     ];
 
     /**
      * Define cast types for each modifier type
-     * 
+     *
      * @var array
      */
     protected $castModifiers = [
@@ -80,7 +86,7 @@ class Settings extends Model
 
     /**
      * Define validation rules for each modifier type
-     * 
+     *
      * @var array
      */
     public $modifierRules = [
@@ -109,7 +115,7 @@ class Settings extends Model
 
     /**
      * Before validating, cast modifier values to their respective type
-     * 
+     *
      * @return void
      */
     public function beforeValidate() {
@@ -145,7 +151,7 @@ class Settings extends Model
     /**
      * Before saving, validate the modifiers which have their own validation logic. Throw an
      * exception on fail.
-     * 
+     *
      * @return void
      */
     public function beforeSave() {

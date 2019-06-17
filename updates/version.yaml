@@ -1,3 +1,4 @@
 1.0.0: Initial version of Image Resize
 1.1.0: Add settings, filters, image not found placeholder, and various other improvements
 1.1.1: Enable image caching
+1.1.2: Minor tweaks and improvements, ship plugin with 2 filters
