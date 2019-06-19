@@ -78,9 +78,9 @@ class Resizer
     public function setImage(string $image)
     {
         // Check if the image is an absolute url to the same server, if so get the storage path of the image
-        if (preg_match('/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '(?::\d+)?\/storage\/(.+)$/', $image, $m)) {
+        if (preg_match('/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '(?::\d+)?\/(.+)$/', $image, $m)) {
             // Convert spaces, not going to urldecode as it will mess with pluses
-            $image = storage_path(str_replace('%20', ' ', $m[1]));
+            $image = base_path(str_replace('%20', ' ', $m[1]));
         }
 
         // If the image is invalid, default to Image Not Found
@@ -144,10 +144,10 @@ class Resizer
      * Initialise the options - Maps options and uses default options as a base as well as
      * setting the hash to be used for caching
      *
-     * @param iterable $options
+     * @param array $options
      * @return void
      */
-    private function initOptions(iterable $options = null)
+    private function initOptions(array $options = null)
     {
         if ($options !== null) {
             // Allow options with key $k, in place of key $v
@@ -188,7 +188,7 @@ class Resizer
             // Check to see if a filter is being used for this image
             if (!empty($options['filter'])) {
                 // If options were passed then use them to override any filters used
-                $options = array_filter($options);
+                $options = array_filter((array) $options);
                 $this->override = array_merge($this->override, $options);
 
                 // Now find it
@@ -247,7 +247,7 @@ class Resizer
     private function storagePath()
     {
         // Get format from destination file (or original, if not specified)
-        [$mime, $format] = $this->detectFormat(true);
+        list($mime, $format) = $this->detectFormat(true);
         return 'app/uploads/public/' . substr($this->hash, 0, 3) . '/' . substr($this->hash, 3, 3) . '/' . substr($this->hash, 6, 3) . '/thumb_' . $this->hash . '.' . $format;
     }
 
@@ -296,10 +296,10 @@ class Resizer
      *
      * @param integer $width
      * @param integer $height
-     * @param iterable $options
+     * @param array $options
      * @return string
      */
-    public function resize(int $width = null, int $height = null, iterable $options = null)
+    public function resize(int $width = null, int $height = null, array $options = null)
     {
         $width = ($width > 0) ? $width : null;
         $height = ($height > 0) ? $height : null;
@@ -452,7 +452,7 @@ class Resizer
         }
 
         // Get the format / mime to export to (either original, or overridden)
-        [$mime, $format] = $this->detectFormat(true);
+        list($mime, $format) = $this->detectFormat(true);
 
         // If it's exporting to a flat image and no background is set, and it was transparent to start off with..
         if (($format !== 'png') && ($format !== 'webp') && empty($this->options['background']) && $this->detectAlpha()) {
@@ -526,7 +526,7 @@ class Resizer
     private function detectAlpha()
     {
         // Get source file's format
-        [$mime, $format] = $this->detectFormat();
+        list($mime, $format) = $this->detectFormat();
 
         switch ($format) {
             case 'png':
@@ -639,7 +639,7 @@ class Resizer
                     $this->im = Image::canvas($this->im->width(), $this->im->height(), $value)->insert($this->im);
                     break;
                 case 'colorize':
-                    [$r, $g, $b] = explode(',', $value);
+                    list($r, $g, $b) = explode(',', $value);
                     $this->im->colorize($r, $g, $b);
                     break;
                 default:
@@ -660,7 +660,7 @@ class Resizer
      * @return void
      */
     public function render() {
-        [$mime, $format] = $this->detectFormat(true);
+        list($mime, $format) = $this->detectFormat(true);
 
         header('Content-Type: image/' . $mime);
         echo $this->im->encode($format);
