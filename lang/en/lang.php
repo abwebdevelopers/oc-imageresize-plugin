@@ -5,6 +5,10 @@ return [
         'name' => 'Image Resizer',
         'description' => 'Adds filters for templates, allowing you to resize, crop, etc, images on the fly with caching',
     ],
+    'permissions' => [
+        'tab' => 'Image Resizer',
+        'access_settings' => 'Access to image resizer settings',
+    ],
     'settings' => [
         'tabs' => [
             'main' => 'Main',

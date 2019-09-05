@@ -45,9 +45,16 @@ class Plugin extends PluginBase
                 'category'    => 'Content',
                 'icon'        => 'icon-image',
                 'class'       => 'ABWebDevelopers\ImageResize\Models\Settings',
+                'permissions' => ['abwebdevelopers.imageresize.access_settings'],
                 'order'       => 500,
                 'keywords'    => 'image resize resizing modify photo modifier'
             ]
+        ];
+    }
+    
+    public function registerPermissions() {
+        return [
+            'abwebdevelopers.imageresize.access_settings' => ['tab' => 'abwebdevelopers.imageresize::lang.permissions.tab', 'label' => 'abwebdevelopers.imageresize::lang.permissions.access_settings'],
         ];
     }
 
