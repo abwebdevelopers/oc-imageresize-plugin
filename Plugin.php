@@ -8,7 +8,6 @@ use Event;
 
 class Plugin extends PluginBase
 {
-
     public function pluginDetails()
     {
         return [
@@ -52,14 +51,16 @@ class Plugin extends PluginBase
         ];
     }
     
-    public function registerPermissions() {
+    public function registerPermissions()
+    {
         return [
             'abwebdevelopers.imageresize.access_settings' => ['tab' => 'abwebdevelopers.imageresize::lang.permissions.tab', 'label' => 'abwebdevelopers.imageresize::lang.permissions.access_settings'],
         ];
     }
 
-    public function boot() {
-        Event::listen('backend.page.beforeDisplay', function($controller, $action, $params) {
+    public function boot()
+    {
+        Event::listen('backend.page.beforeDisplay', function ($controller, $action, $params) {
             if ($controller instanceof \System\Controllers\Settings) {
                 // Check this is the settings page for this plugin:
                 if ($params === ['abwebdevelopers', 'imageresize', 'settings']) {
@@ -69,5 +70,4 @@ class Plugin extends PluginBase
             }
         });
     }
-
 }
