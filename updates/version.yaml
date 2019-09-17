@@ -3,4 +3,4 @@
 1.1.1: Enable image caching
 1.1.2: Minor tweaks and improvements, ship plugin with 2 filters
 1.1.3: Fix PHP 7.0 incompatibility issue, support all relative URL images
-1.1.4: Add access permissions
+1.1.4: Register access permissions
