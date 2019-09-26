@@ -73,6 +73,7 @@ Usage of the modifiers is simple, either add them in a `key: value` fashion in t
 
 | Modifier Name | Code       | Rules                  | Examples                 | Details |
 | ------------- | ---------- | ---------------------- | ------------------------ | ------- |
+| Format        | format     | in:jpg,png,webp,bmp,gif,ico,auto | `jpg`, `png`, `auto`, ...     | Change the format of the image.
 | Blur          | blur       | min:0 max:100          | `0`, `50`, `100`         | Blurs the image
 | Sharpen       | sharpen    | min:0 max:100          | `0`, `50`, `100`         | Sharpens the image
 | Brightness    | brightness | min:-100 max:100       | `-100`, `50`, `100`      | Brightens (or darkens) the image

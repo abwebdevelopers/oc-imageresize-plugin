@@ -75,12 +75,26 @@ class Resizer
      * @param string $image
      * @return void
      */
-    public function setImage(string $image)
+    public function setImage(string $image): void
     {
+        $absolutePath = false;
+
         // Check if the image is an absolute url to the same server, if so get the storage path of the image
-        if (preg_match('/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '(?::\d+)?\/(.+)$/', $image, $m)) {
+        if (preg_match('/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '(?::\d+)?\/storage\/(.+)$/', $image, $m)) {
             // Convert spaces, not going to urldecode as it will mess with pluses
-            $image = base_path(str_replace('%20', ' ', $m[1]));
+            $image = storage_path(str_replace('%20', ' ', $m[1]));
+            $absolutePath = true;
+        }
+
+        // Check if the image is an absolute url to the same server, if so get the storage path of the image
+        if (preg_match('/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '(?::\d+)?\/theme\/(.+)$/', $image, $m)) {
+            // Convert spaces, not going to urldecode as it will mess with pluses
+            $image = base_path('theme/' . str_replace('%20', ' ', $m[1]));
+            $absolutePath = true;
+        }
+
+        if (!$absolutePath) {
+            $image = base_path(trim($image, '/'));
         }
 
         // If the image is invalid, default to Image Not Found
@@ -97,7 +111,7 @@ class Resizer
      *
      * @return string
      */
-    protected function getDefaultImage()
+    protected function getDefaultImage(): string
     {
         // Retrieve the Image Not Found image from settings
         $image = Settings::get('image_not_found');
@@ -125,7 +139,7 @@ class Resizer
      *
      * @return void
      */
-    public function initResource()
+    public function initResource(): void
     {
         if (empty($this->im)) {
             Image::configure([
@@ -147,7 +161,7 @@ class Resizer
      * @param array $options
      * @return void
      */
-    private function initOptions(array $options = null)
+    private function initOptions(array $options = null): void
     {
         if ($options !== null) {
             // Allow options with key $k, in place of key $v
@@ -234,7 +248,7 @@ class Resizer
      *
      * @return string
      */
-    public function getPath()
+    public function getPath(): string
     {
         return storage_path($this->storagePath());
     }
@@ -244,11 +258,15 @@ class Resizer
      *
      * @return string
      */
-    private function storagePath()
+    private function storagePath(): string
     {
         // Get format from destination file (or original, if not specified)
         list($mime, $format) = $this->detectFormat(true);
-        return 'app/uploads/public/' . substr($this->hash, 0, 3) . '/' . substr($this->hash, 3, 3) . '/' . substr($this->hash, 6, 3) . '/thumb_' . $this->hash . '.' . $format;
+        return 'app/uploads/public/'
+            . substr($this->hash, 0, 3) . '/'
+            . substr($this->hash, 3, 3) . '/'
+            . substr($this->hash, 6, 3) . '/'
+            . 'thumb_' . $this->hash . '.' . $format;
     }
 
     /**
@@ -277,7 +295,7 @@ class Resizer
      *
      * @return string
      */
-    public function setCache()
+    public function setCache(): string
     {
         $path = $this->storagePath();
 
@@ -299,7 +317,7 @@ class Resizer
      * @param array $options
      * @return string
      */
-    public function resize(int $width = null, int $height = null, array $options = null)
+    public function resize(int $width = null, int $height = null, array $options = null): string
     {
         $width = ($width > 0) ? $width : null;
         $height = ($height > 0) ? $height : null;
@@ -428,7 +446,7 @@ class Resizer
                         // Use width and height, stretch to fit
                         break;
                     default:
-
+                        //
                         break;
                 }
             }
@@ -438,7 +456,7 @@ class Resizer
                 $this->im->fit($width, $height);
             } else {
                 // Otherwise resize using traditional resize method
-                $this->im->resize($resizeWidth, $resizeHeight, function($constraint) use ($allowUpsizing) {
+                $this->im->resize($resizeWidth, $resizeHeight, function ($constraint) use ($allowUpsizing) {
                     if (!$allowUpsizing) {
                         $constraint->upsize(); // prevent upsizing
                     }
@@ -473,7 +491,7 @@ class Resizer
      * @param  array $options
      * @return string
      */
-    private function detectFormat(bool $useNewFormat = false)
+    private function detectFormat(bool $useNewFormat = false): string
     {
         // If it's already calculated these, then return the cached copy of it
         if (!empty($this->formatCache[$useNewFormat])) {
@@ -523,7 +541,7 @@ class Resizer
      *
      * @return bool
      */
-    private function detectAlpha()
+    private function detectAlpha(): bool
     {
         // Get source file's format
         list($mime, $format) = $this->detectFormat();
@@ -531,7 +549,7 @@ class Resizer
         switch ($format) {
             case 'png':
                 // Determine if png had alpha channel
-                return (ord(@file_get_contents($this->image, NULL, NULL, 25, 1)) === 6);
+                return (ord(@file_get_contents($this->image, null, null, 25, 1)) === 6);
                 break;
             default:
                 // otherwise false
@@ -544,7 +562,7 @@ class Resizer
      *
      * @return void
      */
-    public function modify()
+    public function modify(): void
     {
         // Initialise the resouce if not already initialised
         $this->initResource();
@@ -659,7 +677,8 @@ class Resizer
      *
      * @return void
      */
-    public function render() {
+    public function render(): void
+    {
         list($mime, $format) = $this->detectFormat(true);
 
         header('Content-Type: image/' . $mime);
