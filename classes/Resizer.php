@@ -93,6 +93,7 @@ class Resizer
             $absolutePath = true;
         }
 
+        // If not an absolute path, set it to an absolute path
         if (!$absolutePath) {
             $image = base_path(trim($image, '/'));
         }
