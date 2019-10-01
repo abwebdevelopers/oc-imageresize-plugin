@@ -634,7 +634,7 @@ class Resizer
 
         // No modifiers? May as well skip the validation process then
         if (empty($data)) {
-            return true;
+            return;
         }
 
         // Get validator
