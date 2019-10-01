@@ -144,7 +144,7 @@ class Resizer
     {
         if (empty($this->im)) {
             Image::configure([
-                'driver' => $this->options['driver']
+                'driver' => $this->options['driver'] ?? 'gd'
             ]);
 
             try {
@@ -490,9 +490,9 @@ class Resizer
      * Detect format of input file for default export format
      *
      * @param  array $options
-     * @return string
+     * @return array
      */
-    private function detectFormat(bool $useNewFormat = false): string
+    private function detectFormat(bool $useNewFormat = false): array
     {
         // If it's already calculated these, then return the cached copy of it
         if (!empty($this->formatCache[$useNewFormat])) {
