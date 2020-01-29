@@ -346,7 +346,7 @@ class Resizer
      *
      * @return string
      */
-    public function getFirstTimeUrl(): string
+    public function getTempImageUrl(): string
     {
         return '/imageresize/' . $this->hash;
     }
@@ -356,7 +356,7 @@ class Resizer
      *
      * @return string
      */
-    public function getCachedUrl(): string
+    public function hasCachedImageUrl(): string
     {
         return '/storage/' . $this->getRelativePath();
     }
@@ -366,10 +366,10 @@ class Resizer
      *
      * @return string
      */
-    public function storeCacheAndgetFirstTimeUrl(): string
+    public function getImageUrl(): string
     {
-        if ($this->hasCachedFile()) {
-            return $this->getCachedUrl();
+        if ($this->hasCachedImage()) {
+            return $this->hasCachedImageUrl();
         }
         
         Cache::remember(static::CACHE_PREFIX . $this->hash, Carbon::now()->addMinute(), function () {
@@ -379,15 +379,15 @@ class Resizer
             ];
         });
 
-        return $this->getFirstTimeUrl();
+        return $this->getTempImageUrl();
     }
 
     /**
-     * Set the cache, storing the modified image to file and return the public facing path to it
+     * Store the modified image to file
      *
      * @return $this
      */
-    public function storeResizedImage()
+    public function saveImageToFile()
     {
         // Get absolute path
         $path = $this->getAbsolutePath();
@@ -407,8 +407,9 @@ class Resizer
     /**
      * Resize - Optionally resize the image, and/or modify the image with options.
      *
-     * Contrary to function name, this [as of v2.0] only returns a publicly accessible URL for the image.
-     * Resizing happens in the public endpoint.
+     * Contrary to function name, this [as of v2.0] only returns a publicly accessible
+     * URL for the image if not resized yet (which is where/when the resizing occurs),
+     * or, will return the image path to the resized image if already resized.
      *
      * @param int $width
      * @param int $height
@@ -428,7 +429,7 @@ class Resizer
         $this->initOptions($options);
 
         // Get cache if exists
-        return $this->storeCacheAndgetFirstTimeUrl();
+        return $this->getImageUrl();
     }
 
     /**
@@ -436,7 +437,7 @@ class Resizer
      *
      * @return bool
      */
-    public function hasCachedFile(): bool
+    public function hasCachedImage(): bool
     {
         return file_exists($this->getAbsolutePath());
     }
@@ -446,7 +447,7 @@ class Resizer
      *
      * @return bool
      */
-    public function shouldCache(): bool
+    public function shouldCacheImage(): bool
     {
         return !isset($this->options['cache']) || (bool) $this->options['cache'];
     }
@@ -458,7 +459,7 @@ class Resizer
      */
     public function doResize()
     {
-        if ($this->shouldCache() && $this->hasCachedFile()) {
+        if ($this->shouldCacheImage() && $this->hasCachedImage()) {
             return $this;
         }
 
@@ -606,10 +607,7 @@ class Resizer
             $this->options['background'] = '#fff';
         }
 
-        // Run the modifications on the image
-        $this->modify();
-
-        $this->storeResizedImage();
+        $this->saveImageToFile();
 
         return $this;
     }
