@@ -8,10 +8,9 @@ use October\Rain\Database\Traits\Validation;
 
 class Settings extends Model
 {
-
     use Validation;
 
-    const DEFAULT_IMAGE_NOT_FOUND = 'plugins/abwebdevelopers/imageresize/assets/image-not-found.png';
+    public const DEFAULT_IMAGE_NOT_FOUND = 'plugins/abwebdevelopers/imageresize/assets/image-not-found.png';
 
     /**
      * Implement settings model
@@ -118,7 +117,8 @@ class Settings extends Model
      *
      * @return void
      */
-    public function beforeValidate() {
+    public function beforeValidate()
+    {
         if (!empty($this->value)) {
             $data = $this->value;
 
@@ -154,7 +154,8 @@ class Settings extends Model
      *
      * @return void
      */
-    public function beforeSave() {
+    public function beforeSave()
+    {
         if (!empty($this->value)) {
             $data = $this->value;
             if (!empty($data['filters'])) {
@@ -180,5 +181,4 @@ class Settings extends Model
             }
         }
     }
-
 }
