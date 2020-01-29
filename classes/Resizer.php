@@ -318,7 +318,7 @@ class Resizer
     }
 
     /**
-     * Get the absolute physical path of the image
+     * Get the absolute physical path of the resized image
      *
      * @return string
      */
@@ -328,13 +328,13 @@ class Resizer
     }
 
     /**
-     * Get the path relative to the storage directory
+     * Get the path (of resized image) relative to the storage directory
      *
      * @return string
      */
     private function getRelativePath(): string
     {
-        return 'app/imageresizecache/'
+        return 'app/media/imageresizecache/'
             . substr($this->hash, 0, 3) . '/'
             . substr($this->hash, 3, 3) . '/'
             . substr($this->hash, 6, 3) . '/'
@@ -342,30 +342,42 @@ class Resizer
     }
 
     /**
-     * Get the publicly accessible URL for this image
+     * Get the URL for resizing this image for the first time
      *
      * @return string
      */
-    public function getPublicUrl(): string
+    public function getFirstTimeUrl(): string
     {
         return '/imageresize/' . $this->hash;
     }
 
     /**
+     * Get the URL of the resized (and cached) image
+     *
+     * @return string
+     */
+    public function getCacheUrl(): string
+    {
+        return '/storage/' . $this->getRelativePath();
+    }
+
+    /**
      * Store the configuration in the cache, and retrieve the URL
      *
-     * @return bool|string
+     * @return string
      */
-    public function storeCacheAndGetPublicUrl()
+    public function storeCacheAndgetFirstTimeUrl(): string
     {
-        Cache::remember(static::CACHE_PREFIX . $this->hash, Carbon::now()->addWeek(), function () {
+        Cache::remember(static::CACHE_PREFIX . $this->hash, Carbon::now()->addMinute(), function () {
             return [
                 'image' => $this->image,
                 'options' => $this->options,
             ];
         });
 
-        return $this->getPublicUrl();
+        $cacheExists = $this->hasStoredFile();
+
+        return ($cacheExists) ? $this->getCacheUrl() : $this->getFirstTimeUrl();
     }
 
     /**
@@ -414,7 +426,7 @@ class Resizer
         $this->initOptions($options);
 
         // Get cache if exists
-        return $this->storeCacheAndGetPublicUrl();
+        return $this->storeCacheAndgetFirstTimeUrl();
     }
 
     /**
