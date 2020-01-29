@@ -6,4 +6,5 @@
 1.1.4: Register access permissions
 1.1.5: Fix issue with spaces in filenames
 1.1.6: Fix return type errors
+1.1.7: Remove debug routes file
 2.0.0: Optimise image resizing on initial pageload by offloading to separate thread (by resizing when requesting images)
