@@ -25,10 +25,12 @@ class Plugin extends PluginBase
             'filters' => [
                 'resize' => function ($image, $width, $height = null, $options = []) {
                     $resizer = new Resizer((string) $image);
+
                     return $resizer->resize((int) $width, (int) $height, (array) $options);
                 },
                 'modify' => function ($image, $options = []) {
                     $resizer = new Resizer((string) $image);
+
                     return $resizer->resize(null, null, (array) $options);
                 }
             ]
@@ -50,7 +52,7 @@ class Plugin extends PluginBase
             ]
         ];
     }
-    
+
     public function registerPermissions()
     {
         return [

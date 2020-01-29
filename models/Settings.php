@@ -11,7 +11,7 @@ class Settings extends Model
 
     use Validation;
 
-    const DEFAULT_IMAGE_NOT_FOUND = '/plugins/abwebdevelopers/imageresize/assets/image-not-found.png';
+    const DEFAULT_IMAGE_NOT_FOUND = 'plugins/abwebdevelopers/imageresize/assets/image-not-found.png';
 
     /**
      * Implement settings model
