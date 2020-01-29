@@ -356,7 +356,7 @@ class Resizer
      *
      * @return string
      */
-    public function getCacheUrl(): string
+    public function getCachedUrl(): string
     {
         return '/storage/' . $this->getRelativePath();
     }
@@ -368,6 +368,10 @@ class Resizer
      */
     public function storeCacheAndgetFirstTimeUrl(): string
     {
+        if ($this->hasCachedFile()) {
+            return $this->getCachedUrl();
+        }
+        
         Cache::remember(static::CACHE_PREFIX . $this->hash, Carbon::now()->addMinute(), function () {
             return [
                 'image' => $this->image,
@@ -375,9 +379,7 @@ class Resizer
             ];
         });
 
-        $cacheExists = $this->hasStoredFile();
-
-        return ($cacheExists) ? $this->getCacheUrl() : $this->getFirstTimeUrl();
+        return $this->getFirstTimeUrl();
     }
 
     /**
@@ -434,7 +436,7 @@ class Resizer
      *
      * @return bool
      */
-    public function hasStoredFile(): bool
+    public function hasCachedFile(): bool
     {
         return file_exists($this->getAbsolutePath());
     }
@@ -456,7 +458,7 @@ class Resizer
      */
     public function doResize()
     {
-        if ($this->shouldCache() && $this->hasStoredFile()) {
+        if ($this->shouldCache() && $this->hasCachedFile()) {
             return $this;
         }
 
