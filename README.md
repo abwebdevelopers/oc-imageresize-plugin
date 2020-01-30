@@ -26,7 +26,7 @@ Using composer: `composer require abwebdevelopers/oc-imageresize-plugin`
 
 ### October CMS usage
 
-This plugin utilises [Intervention Image](https://github.com/Intervention/image)'s magical powers to easily resize and transform your images with ease, allow us to create a wrapper for it. Please note it does not do everything `intervention/image` does, however a fair few features are available.
+This plugin utilises [Intervention Image](https://github.com/Intervention/image)'s magical powers to easily resize and transform your images with ease, allow us to create a wrapper for it. Please note it does not do everything intervention/image does, however a fair few features are available.
 
 **Basic Resizing**
 
@@ -62,7 +62,7 @@ Stretch and morph it to fit exatly in the defined dimensions
 
 **Further Modifications**
 
-A few image adjustment tools have been implemented into this plugin, which utilise their `intervention/image` counterparts:
+A few image adjustment tools have been implemented into this plugin, which utilise their intervention/image counterparts:
 
 Usage of the modifiers is simple, either add them in a `key: value` fashion in the 3rd argument of the resize filter, or by using the modify filter, as such:
 
@@ -79,13 +79,13 @@ Usage of the modifiers is simple, either add them in a `key: value` fashion in t
 | Brightness    | brightness | min:-100 max:100       | `-100`, `50`, `100`      | Brightens (or darkens) the image
 | Contrast      | contrast   | min:-100 max:100       | `-100`, `50`, `100`      | Increases/decreases the contrast of the image
 | Pixelate      | pixelate   | min:1 max:1000         | `1`, `500`, `1000`       | Pixelates the image
-| Greyscale     | greyscale/grayscale  | accepted               | `true`, `1`              | See [accepted](https://octobercms.com/docs/services/validation#rule-accepted) rule. Sets the image mode to greyscale. Both `code`s are accepted (one just maps to the other) |
+| Greyscale     | greyscale/grayscale  | accepted               | `true`, `1`              | See [accepted](https://octobercms.com/docs/services/validation#rule-accepted) rule. Sets the image mode to greyscale. Both codes are accepted (one just maps to the other) |
 | Invert        | invert     | accepted               | `true`, `1`              | See [accepted](https://octobercms.com/docs/services/validation#rule-accepted) rule. Inverts all image colors |
 | Opacity       | opacity    | min:0 max:100          | `0`, `50`, `100`         | Set the opacity of the image
 | Rotate        | rotate     | min:0 max:360          | `45`, `90`, `360`        | Rotate the image (width / height does not constrain the rotated image, the image is resized prior to modifications)
 | Flip          | flip       | 'h' or 'v'             | `h`, `v`                 | Flip horizontally (h) or vertically (v) |
-| Background    | fill/background | Hex color              | `#fff`, `#123456`, `000` | Set a background color - Hex color (with or without hashtag). Both `code`s are accepted (one just maps to the other) |
-| Colorize      | colourise/colorize   | string (format: r,g,b) | `255,0,0`, `0,50,25`     | Colorize the image. String containing 3 numbers (0-255), comma separated. Both `code`s are accepted (one just maps to the other) |
+| Background    | fill/background | Hex color              | `#fff`, `#123456`, `000` | Set a background color - Hex color (with or without hashtag). Both codes are accepted (one just maps to the other) |
+| Colorize      | colourise/colorize   | string (format: r,g,b) | `255,0,0`, `0,50,25`     | Colorize the image. String containing 3 numbers (0-255), comma separated. Both codes are accepted (one just maps to the other) |
 
 A couple examples from the above:
 ```
@@ -98,8 +98,9 @@ A couple examples from the above:
 
 ### Filters (templates for configuration)
 
-Filters are similar to filters in `intervention/image` in the sense that you can define a list of rules (modifiers) to be used for each image that uses the filter. A common example would be a basic thumbnail - let's say it's consists of `format: jpg`, `mode: cover`, `quality: 60`, `max_width: 200`, `max_height: 200` and maybe `background: #fff`. Applying this filter to any image will automatically apply the respective modifiers. See below for example:
+Filters are similar to filters in intervention\image in the sense that you can define a list of rules for each image using the filter. A common example would be a basic thumbnail - you want this to always be `format: jpg`, `mode: cover`, `quality: 60`, `max_width: 200`, `max_height: 200` and maybe `background: #fff`.
 
+With filters, you can specify the above, call it something useful like `thumbnail`, then simply do the following:
 ```
 <!-- display thumbnail -->
 <img src="{{ image | media | modify({ filter: 'thumbnail' }) }}">
@@ -111,14 +112,14 @@ or
 Which will use the predefined list of modifiers and have them overwritten by any that are supplied, for example:
 
 ```
-<img src="{{ image | media | modify({ filter: 'thumbnail', quality: 100, contrast: 30 }) }}">
+<img src="{{ image | media | modify({ filter: 'thumbnail', brightness: -30, contrast: 30 }) }}">
 ```
 
-which would create an image in `jpg` format, `cover` mode, `100%` quality, no bigger than `200x200`, background `#fff` and increase the constrast of it. Simple and flexible, yet powerful.
+which would use create an image in jpg format, cover, 60% quality, no bigger than 200x200, background #ff and darken and increase the constrast of it. Simple, flexible, powerful.
 
 **Please Note**
 
-There are a couple modifiers for filters which include: `min_width`, `max_width`, `min_height`, `max_height` which all act as constraints for the dimensions of the images using filters. Should you use one, please note that if you use it with the `| resize(w, h)` function, your supplied dimensions will be ignored (and the constraints will be used) *if* they are out of bounds of the constraints. If the supplied dimensions are within the constraints, the image will be displayed at the supplied dimensions
+There are a couple new modifiers for filters which include: `min_width`, `max_width`, `min_height`, `max_height` which all act as constraints for the dimensions of the images using filters. Should you use one, please note that if you use it with the `| resize(w, h)` function, your supplied dimensions will be ignored *if* they are out of bounds of the constraints. If the supplied dimensions are within the constraints, the image will be displayed at the supplied dimensions
 
 
 **Using the library in PHP**
@@ -127,31 +128,10 @@ Should you want to implement your own use of this library outside of twig, you c
 
 ```
 $resizer = new \ABWebDevelopers\ImageResize\Classes\Resizer($image);
-
-// v1:
 $resizer->resize(800, 250, [
     'rotate' => 45
 ]);
-$resizer->render(); // aborts script
-
-// v2:
-$resizer->resize(800, 250, [
-    'rotate' => 45
-]); // will not resize, only return a URL of the image
-$resize->doResize(); // required to actually perform the resize
-$resizer->render(); // aborts script
-```
-
-or
-
-```
-// The :using() method requires a fully qualified path to the file (it will not guess or try fix it unlike the example above)
-\ABWebDevelopers\ImageResize\Classes\Resizer::using('/resolvable/path/to/file')
-    // ->setHash($hash) // optional usage
-    // ->setOptions($config['options']) // optional usage
-    ->resize(800, 250, [ 'rotate' => 45, ])
-    ->doResize()
-    ->render();
+// $resizer->render(); // only use this if you intend on aborting the script immediately at this point
 ```
 
 Which is synonymous to:

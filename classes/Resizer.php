@@ -6,6 +6,8 @@ use ABWebDevelopers\ImageResize\Models\Settings;
 use Cache;
 use Carbon\Carbon;
 use Exception;
+use Event;
+use File;
 use Intervention\Image\ImageManagerStatic as Image;
 use Validator;
 
@@ -165,7 +167,7 @@ class Resizer
 
         // If the image still doesn't exist, use the provided Image Not Found image
         if (!$image || !file_exists($image)) {
-            $image = base_path(Settings::DEFAULT_IMAGE_NOT_FOUND);
+            $image = Settings::getDefaultImageNotFound(true);
         }
 
         // Use the default Image Not Found background, mode and quality
@@ -318,76 +320,77 @@ class Resizer
     }
 
     /**
-     * Get the absolute physical path of the resized image
+     * Get the absolute physical path of the image
      *
      * @return string
      */
     public function getAbsolutePath(): string
     {
-        return storage_path($this->getRelativePath());
+        return base_path($this->getRelativePath());
     }
 
     /**
-     * Get the path (of resized image) relative to the storage directory
+     * Get the path relative to the base directory
      *
      * @return string
      */
     private function getRelativePath(): string
     {
-        return 'app/media/imageresizecache/'
-            . substr($this->hash, 0, 3) . '/'
-            . substr($this->hash, 3, 3) . '/'
-            . substr($this->hash, 6, 3) . '/'
-            . $this->hash;
+        $rel = '/' . substr($this->hash, 0, 3) .
+            '/' . substr($this->hash, 3, 3) .
+            '/' . substr($this->hash, 6, 3) .
+            '/' . $this->hash;
+
+        return Settings::getBasePath($rel);
     }
 
     /**
-     * Get the URL for resizing this image for the first time
+     * Get the URL for resizing this image for the first time.
      *
      * @return string
      */
-    public function getTempImageUrl(): string
+    public function getFirstTimeUrl(): string
     {
         return '/imageresize/' . $this->hash;
     }
 
     /**
-     * Get the URL of the resized (and cached) image
+     * Get the URL of the resized (and cached) image.
+     *
+     * Simply returns a relative URL to the website.
      *
      * @return string
      */
-    public function hasCachedImageUrl(): string
+    public function getCacheUrl(): string
     {
-        return '/storage/' . $this->getRelativePath();
+        return '/' . $this->getRelativePath();
     }
 
     /**
      * Store the configuration in the cache, and retrieve the URL
      *
-     * @return string
+     * @return bool|string
      */
-    public function getImageUrl(): string
+    public function storeCacheAndgetFirstTimeUrl()
     {
-        if ($this->hasCachedImage()) {
-            return $this->hasCachedImageUrl();
-        }
-        
-        Cache::remember(static::CACHE_PREFIX . $this->hash, Carbon::now()->addMinute(), function () {
+        Cache::remember(static::CACHE_PREFIX . $this->hash, Carbon::now()->addWeek(), function () {
             return [
                 'image' => $this->image,
                 'options' => $this->options,
             ];
         });
 
-        return $this->getTempImageUrl();
+        $cacheExists = $this->hasStoredFile();
+
+        return ($cacheExists) ? $this->getCacheUrl() : $this->getFirstTimeUrl();
     }
 
     /**
-     * Store the modified image to file
+     * Set the cache, storing the modified image to file and return the public facing path to it
      *
      * @return $this
      */
-    public function saveImageToFile()
+    public function storeResizedImage()
     {
         // Get absolute path
         $path = $this->getAbsolutePath();
@@ -407,9 +410,8 @@ class Resizer
     /**
      * Resize - Optionally resize the image, and/or modify the image with options.
      *
-     * Contrary to function name, this [as of v2.0] only returns a publicly accessible
-     * URL for the image if not resized yet (which is where/when the resizing occurs),
-     * or, will return the image path to the resized image if already resized.
+     * Contrary to function name, this [as of v2.0] only returns a publicly accessible URL for the image.
+     * Resizing happens in the public endpoint.
      *
      * @param int $width
      * @param int $height
@@ -429,7 +431,7 @@ class Resizer
         $this->initOptions($options);
 
         // Get cache if exists
-        return $this->getImageUrl();
+        return $this->storeCacheAndgetFirstTimeUrl();
     }
 
     /**
@@ -437,7 +439,7 @@ class Resizer
      *
      * @return bool
      */
-    public function hasCachedImage(): bool
+    public function hasStoredFile(): bool
     {
         return file_exists($this->getAbsolutePath());
     }
@@ -447,7 +449,7 @@ class Resizer
      *
      * @return bool
      */
-    public function shouldCacheImage(): bool
+    public function shouldCache(): bool
     {
         return !isset($this->options['cache']) || (bool) $this->options['cache'];
     }
@@ -459,7 +461,7 @@ class Resizer
      */
     public function doResize()
     {
-        if ($this->shouldCacheImage() && $this->hasCachedImage()) {
+        if ($this->shouldCache() && $this->hasStoredFile()) {
             return $this;
         }
 
@@ -607,7 +609,10 @@ class Resizer
             $this->options['background'] = '#fff';
         }
 
-        $this->saveImageToFile();
+        // Run the modifications on the image
+        $this->modify();
+
+        $this->storeResizedImage();
 
         return $this;
     }
@@ -816,5 +821,37 @@ class Resizer
         header('Content-Type: image/' . $mime);
         echo file_get_contents($this->getAbsolutePath());
         exit();
+    }
+
+    /**
+     * Delete all cached images.
+     *
+     * @param Carbon|null $minAge Optional minimum age (delete before this date), `null` for all files.
+     * @return int Number of files deleted
+     */
+    public static function clearFiles(Carbon $minAge = null): int
+    {
+        $files = collect(File::allFiles(Settings::getBasePath()))
+            ->transform(function ($file) use ($minAge) {
+                $delete = true;
+
+                // If a custom time was given, only delete if the file is older
+                if ($minAge !== null) {
+                    $mtime = Carbon::createFromTimestamp($file->getMTime());
+                    $delete = $mtime->lte($minAge);
+                }
+
+                return ($delete) ? $file->getRealPath() : null;
+            })
+            ->filter()
+            ->toArray();
+
+        // Fire event to hook into and modify $files before deleting
+        Event::fire('abweb.imageresize.clearFiles', [ &$files, $minAge ]);
+
+        // Delete the files
+        File::delete($files);
+
+        return count($files);
     }
 }

@@ -1,8 +1,6 @@
 <?php
 
 use ABWebDevelopers\ImageResize\Classes\Resizer;
-use Cache;
-use Route;
 
 /**
  * Publicly accessible URL for viewing a resized image, using a cache hash.

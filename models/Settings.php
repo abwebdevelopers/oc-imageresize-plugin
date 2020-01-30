@@ -10,7 +10,14 @@ class Settings extends Model
 {
     use Validation;
 
+    /** @var string The default Image Not Found image, @see ::getDefaultImageNotFound() */
     public const DEFAULT_IMAGE_NOT_FOUND = 'plugins/abwebdevelopers/imageresize/assets/image-not-found.png';
+
+    /** @var string Storage path for cached images, @see ::getBasePath() */
+    public const DEFAULT_STORAGE_PATH = 'storage/app/media/imageresizecache';
+
+    /** @var string The age a cached file must be before scheduled deletion, @see ::getAgeToDelete() */
+    public const DEFAULT_CACHE_CLEAR_AGE = '12 hours';
 
     /**
      * Implement settings model
@@ -180,5 +187,57 @@ class Settings extends Model
                 }
             }
         }
+    }
+
+    /**
+     * Retrieve the default "Not Found" image path
+     *
+     * @param bool $absolute Return absolute path?
+     * @return string
+     */
+    public static function getDefaultImageNotFound(bool $absolute = false): string
+    {
+        $path = static::DEFAULT_IMAGE_NOT_FOUND;
+
+        if ($absolute) {
+            $path = (substr($path, 0, 1) === '/') ? $path : base_path($path);
+        }
+
+        return $path;
+    }
+
+    /**
+     * Get the base path for all cached images.
+     *
+     * Similarly to base_path(), storage_path(), etc, you can provide a subdir path
+     * as the first argument. This function will never return a trailing slash
+     * unless you provide it in the first argument.
+     *
+     * @return string
+     */
+    public static function getBasePath(string $subdirectoryPath = null, bool $absolute = false): string
+    {
+        $path = rtrim(static::DEFAULT_STORAGE_PATH, '/');
+
+        if ($subdirectoryPath !== null) {
+            $path .= '/' . $subdirectoryPath;
+        }
+
+        if ($absolute) {
+            $path = (substr($path, 0, 1) === '/') ? $path : base_path($path);
+        }
+
+        return $path;
+    }
+
+    /**
+     * Get the age a cached file must be before scheduled deletion.
+     * Equivalent to: `->modify("-{$age}")` (now minus the age)
+     *
+     * @return string
+     */
+    public static function getAgeToDelete(): string
+    {
+        return static::DEFAULT_CACHE_CLEAR_AGE;
     }
 }
