@@ -5,6 +5,7 @@ namespace ABWebDevelopers\ImageResize;
 use System\Classes\PluginBase;
 use ABWebDevelopers\ImageResize\Classes\Resizer;
 use ABWebDevelopers\ImageResize\Commands\ImageResizeClear;
+use ABWebDevelopers\ImageResize\Commands\ImageResizeGc;
 use Event;
 
 class Plugin extends PluginBase
@@ -94,6 +95,7 @@ class Plugin extends PluginBase
      */
     public function register()
     {
+        $this->registerConsoleCommand('imageresize:gc', ImageResizeGc::class);
         $this->registerConsoleCommand('imageresize:clear', ImageResizeClear::class);
     }
 
@@ -102,6 +104,6 @@ class Plugin extends PluginBase
      */
     public function registerSchedule($schedule)
     {
-        $schedule->command('imageresize:clear')->daily();
+        $schedule->command('imageresize:gc')->daily();
     }
 }
