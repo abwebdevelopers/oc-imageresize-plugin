@@ -102,6 +102,6 @@ class Plugin extends PluginBase
      */
     public function registerSchedule($schedule)
     {
-        $schedule->command('imageresize:clear')->everyMinute();
+        $schedule->command('imageresize:clear')->daily();
     }
 }
