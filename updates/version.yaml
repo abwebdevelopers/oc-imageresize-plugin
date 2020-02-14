@@ -8,3 +8,4 @@
 1.1.6: Fix return type errors
 1.1.7: Remove debug routes file
 2.0.0: Optimise image resizing on initial pageload by offloading to separate thread (by resizing when requesting images)
+2.0.1: Fix bug (since 2.0.0) where the 'default 404 image' does not utilise the configured background/mode/quality
