@@ -130,9 +130,9 @@ class Resizer
         }
 
         // Use the default Image Not Found background, mode and quality
-        $this->override['background'] = Settings::get('image_not_found_background', '#fff');
-        $this->override['mode'] = Settings::get('image_not_found_mode', 'cover');
-        $this->override['quality'] = Settings::get('image_not_found_quality', 65);
+        $this->options['background'] = Settings::get('image_not_found_background', '#fff');
+        $this->options['mode'] = Settings::get('image_not_found_mode', 'cover');
+        $this->options['quality'] = Settings::get('image_not_found_quality', 65);
 
         return $image;
     }
