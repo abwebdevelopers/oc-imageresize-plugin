@@ -2,13 +2,18 @@
 
 namespace ABWebDevelopers\ImageResize\Classes;
 
+use ABWebDevelopers\ImageResize\Models\Settings;
+use Cache;
+use Carbon\Carbon;
+use Exception;
+use Event;
+use File;
 use Intervention\Image\ImageManagerStatic as Image;
 use Validator;
-use Exception;
-use ABWebDevelopers\ImageResize\Models\Settings;
 
 class Resizer
 {
+    public const CACHE_PREFIX = 'image_resize_';
 
     /**
      * A list of computed values to override $options
@@ -64,49 +69,85 @@ class Resizer
      *
      * @param string $image
      */
-    public function __construct(string $image)
+    public function __construct(string $image = null, bool $doNotModifyPath = false)
     {
-        $this->setImage($image);
+        $this->setImage($image, $doNotModifyPath);
+    }
+
+    /**
+     * Instantiate an instance using an image path
+     *
+     * @param string|null $image
+     * @return void
+     */
+    public static function using(string $image = null)
+    {
+        $that = new static($image, true);
+
+        return $that;
     }
 
     /**
      * Specify the image to use
      *
      * @param string $image
-     * @return void
+     * @return $this
      */
-    public function setImage(string $image): void
+    public function setImage(string $image = null, bool $doNotModifyPath = false)
     {
-        $absolutePath = false;
+        if ($doNotModifyPath) {
+            $this->image = $image;
 
-        if (substr($image, 0, 2) === '{"') {
-            $attempt = json_decode($image);
+            return $this;
+        }
 
-            if (!empty($attempt->path)) {
-                $image = $attempt->path;
+        if ($image !== null) {
+            $absolutePath = false;
+
+            // Support JSON objects containing path property, e.g: {"path":"USETHISPATH",...}
+            if (substr($image, 0, 2) === '{"') {
+                $attempt = json_decode($image);
+
+                if (!empty($attempt->path)) {
+                    $image = $attempt->path;
+                }
+            }
+
+            // Check if the image is an absolute url to the same server, if so get the storage path of the image
+            $regex = '/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '(?::\d+)?\/(.+)$/';
+            if (preg_match($regex, $image, $m)) {
+                // Convert spaces, not going to urldecode as it will mess with pluses
+                $image = base_path(str_replace('%20', ' ', $m[1]));
+                $absolutePath = true;
+            }
+
+            // If not an absolute path, set it to an absolute path
+            if (!$absolutePath) {
+                $image = base_path(trim($image, '/'));
             }
         }
 
-        // Check if the image is an absolute url to the same server, if so get the storage path of the image
-        $regex = '/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '(?::\d+)?\/(.+)$/';
-        if (preg_match($regex, $image, $m)) {
-            // Convert spaces, not going to urldecode as it will mess with pluses
-            $image = base_path(str_replace('%20', ' ', $m[1]));
-            $absolutePath = true;
-        }
+        // Set the image
+        $this->image = $image;
 
-        // If not an absolute path, set it to an absolute path
-        if (!$absolutePath) {
-            $image = base_path(trim($image, '/'));
-        }
+        return $this;
+    }
+
+    /**
+     * Get the path to the image (or default if necessary)
+     *
+     * @return string
+     */
+    public function getImagePath(): string
+    {
+        $image = $this->image;
 
         // If the image is invalid, default to Image Not Found
         if ($image === null || $image === '' || !file_exists($image)) {
             $image = $this->getDefaultImage();
         }
 
-        // Set the image
-        $this->image = $image;
+        return $image;
     }
 
     /**
@@ -126,7 +167,7 @@ class Resizer
 
         // If the image still doesn't exist, use the provided Image Not Found image
         if (!$image || !file_exists($image)) {
-            $image = base_path(Settings::DEFAULT_IMAGE_NOT_FOUND);
+            $image = Settings::getDefaultImageNotFound(true);
         }
 
         // Use the default Image Not Found background, mode and quality
@@ -138,11 +179,39 @@ class Resizer
     }
 
     /**
+     * Set some options for the image resizer
+     *
+     * @param array $options
+     * @return $this
+     */
+    public function setOptions(array $options)
+    {
+        foreach ($options as $key => $value) {
+            $this->options[$key] = $value;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the hash for this file
+     *
+     * @param string $hash
+     * @return $this
+     */
+    public function setHash(string $hash)
+    {
+        $this->hash = $hash;
+
+        return $this;
+    }
+
+    /**
      * Initialise the resource - Creates the original and (to be) modified image resource entities
      *
-     * @return void
+     * @return $this
      */
-    public function initResource(): void
+    public function initResource()
     {
         if (empty($this->im)) {
             Image::configure([
@@ -155,6 +224,8 @@ class Resizer
                 $this->im = $this->original = Image::make($this->getDefaultImage());
             }
         }
+
+        return $this;
     }
 
     /**
@@ -162,9 +233,9 @@ class Resizer
      * setting the hash to be used for caching
      *
      * @param array $options
-     * @return void
+     * @return $this
      */
-    private function initOptions(array $options = null): void
+    private function initOptions(array $options = null)
     {
         if ($options !== null) {
             // Allow options with key $k, in place of key $v
@@ -244,79 +315,106 @@ class Resizer
 
         // Set hash based on image and options
         $this->hash = hash('sha256', $this->image . json_encode($this->options));
+
+        return $this;
     }
 
     /**
-     * Get the physical path of the image
+     * Get the absolute physical path of the image
      *
      * @return string
      */
-    public function getPath(): string
+    public function getAbsolutePath(): string
     {
-        return storage_path($this->storagePath());
+        return base_path($this->getRelativePath());
     }
 
     /**
-     * Get the storage path - used for public access and for physical path generation
+     * Get the path relative to the base directory
      *
      * @return string
      */
-    private function storagePath(): string
+    private function getRelativePath(): string
     {
-        // Get format from destination file (or original, if not specified)
-        list($mime, $format) = $this->detectFormat(true);
-        return 'app/uploads/public/'
-            . substr($this->hash, 0, 3) . '/'
-            . substr($this->hash, 3, 3) . '/'
-            . substr($this->hash, 6, 3) . '/'
-            . 'thumb_' . $this->hash . '.' . $format;
+        $rel = '/' . substr($this->hash, 0, 3) .
+            '/' . substr($this->hash, 3, 3) .
+            '/' . substr($this->hash, 6, 3) .
+            '/' . $this->hash;
+
+        return Settings::getBasePath($rel);
     }
 
     /**
-     * Check to see if the file exists in the cache and if so, return the public facing path to it
+     * Get the URL for resizing this image for the first time.
+     *
+     * @return string
+     */
+    public function getFirstTimeUrl(): string
+    {
+        return '/imageresize/' . $this->hash;
+    }
+
+    /**
+     * Get the URL of the resized (and cached) image.
+     *
+     * Simply returns a relative URL to the website.
+     *
+     * @return string
+     */
+    public function getCacheUrl(): string
+    {
+        return '/' . $this->getRelativePath();
+    }
+
+    /**
+     * Store the configuration in the cache, and retrieve the URL
      *
      * @return bool|string
      */
-    public function getCache()
+    public function storeCacheAndgetFirstTimeUrl()
     {
-        // If explicitly told to not cache, don't cache it then
-        if (isset($this->options['cache']) && !$this->options['cache']) {
-            return false;
-        }
+        Cache::remember(static::CACHE_PREFIX . $this->hash, Carbon::now()->addWeek(), function () {
+            return [
+                'image' => $this->image,
+                'options' => $this->options,
+            ];
+        });
 
-        $path = $this->storagePath();
+        $cacheExists = $this->hasStoredFile();
 
-        if (file_exists(storage_path($path))) {
-            return '/storage/' . $path;
-        }
-
-        return false;
+        return ($cacheExists) ? $this->getCacheUrl() : $this->getFirstTimeUrl();
     }
 
     /**
      * Set the cache, storing the modified image to file and return the public facing path to it
      *
-     * @return string
+     * @return $this
      */
-    public function setCache(): string
+    public function storeResizedImage()
     {
-        $path = $this->storagePath();
+        // Get absolute path
+        $path = $this->getAbsolutePath();
 
-        $base = storage_path(substr($path, 0, strrpos($path, '/')));
+        // Create directory if not exists
+        $base = dirname($path);
         if (!file_exists($base)) {
             mkdir($base, 0775, true);
         }
 
-        $this->im->save(storage_path($path), $this->options['quality'] ?? null);
+        // Save to file
+        $this->im->save($path, $this->options['quality'] ?? null);
 
-        return '/storage/' . $path;
+        return $this;
     }
 
     /**
-     * Resize - Optionally resize the image, and/or modify the image with options
+     * Resize - Optionally resize the image, and/or modify the image with options.
      *
-     * @param integer $width
-     * @param integer $height
+     * Contrary to function name, this [as of v2.0] only returns a publicly accessible URL for the image.
+     * Resizing happens in the public endpoint.
+     *
+     * @param int $width
+     * @param int $height
      * @param array $options
      * @return string
      */
@@ -333,8 +431,38 @@ class Resizer
         $this->initOptions($options);
 
         // Get cache if exists
-        if ($cached = $this->getCache()) {
-            return $cached;
+        return $this->storeCacheAndgetFirstTimeUrl();
+    }
+
+    /**
+     * Does the current file exist in the filesystem?
+     *
+     * @return bool
+     */
+    public function hasStoredFile(): bool
+    {
+        return file_exists($this->getAbsolutePath());
+    }
+
+    /**
+     * Should the image be cached?
+     *
+     * @return bool
+     */
+    public function shouldCache(): bool
+    {
+        return !isset($this->options['cache']) || (bool) $this->options['cache'];
+    }
+
+    /**
+     * Do the resizing (if applicable)
+     *
+     * @return $this
+     */
+    public function doResize()
+    {
+        if ($this->shouldCache() && $this->hasStoredFile()) {
+            return $this;
         }
 
         $width = $this->options['width'];
@@ -484,12 +612,16 @@ class Resizer
         // Run the modifications on the image
         $this->modify();
 
-        // Return the publicly accessible image path after caching the image
-        return $this->setCache();
+        $this->storeResizedImage();
+
+        return $this;
     }
 
     /**
      * Detect format of input file for default export format
+     *
+     * Return value is: [mime, format]
+     * Example:         ['image/jpeg', 'jpg']
      *
      * @param  array $options
      * @return array
@@ -563,9 +695,9 @@ class Resizer
     /**
      * Modify the image with the options provided
      *
-     * @return void
+     * @return $this
      */
-    public function modify(): void
+    public function modify()
     {
         // Initialise the resouce if not already initialised
         $this->initResource();
@@ -673,10 +805,12 @@ class Resizer
                     break;
             }
         }
+
+        return $this;
     }
 
     /**
-     * Render the image in the desired output format, exiting immediately after
+     * Render the image (from the filesystem) in the desired output format, exiting immediately after.
      *
      * @return void
      */
@@ -685,7 +819,39 @@ class Resizer
         list($mime, $format) = $this->detectFormat(true);
 
         header('Content-Type: image/' . $mime);
-        echo $this->im->encode($format);
+        echo file_get_contents($this->getAbsolutePath());
         exit();
+    }
+
+    /**
+     * Delete all cached images.
+     *
+     * @param Carbon|null $minAge Optional minimum age (delete before this date), `null` for all files.
+     * @return int Number of files deleted
+     */
+    public static function clearFiles(Carbon $minAge = null): int
+    {
+        $files = collect(File::allFiles(Settings::getBasePath()))
+            ->transform(function ($file) use ($minAge) {
+                $delete = true;
+
+                // If a custom time was given, only delete if the file is older
+                if ($minAge !== null) {
+                    $mtime = Carbon::createFromTimestamp($file->getMTime());
+                    $delete = $mtime->lte($minAge);
+                }
+
+                return ($delete) ? $file->getRealPath() : null;
+            })
+            ->filter()
+            ->toArray();
+
+        // Fire event to hook into and modify $files before deleting
+        Event::fire('abweb.imageresize.clearFiles', [ &$files, $minAge ]);
+
+        // Delete the files
+        File::delete($files);
+
+        return count($files);
     }
 }

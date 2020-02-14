@@ -4,10 +4,15 @@ namespace ABWebDevelopers\ImageResize;
 
 use System\Classes\PluginBase;
 use ABWebDevelopers\ImageResize\Classes\Resizer;
+use ABWebDevelopers\ImageResize\Commands\ImageResizeClear;
+use ABWebDevelopers\ImageResize\Commands\ImageResizeGc;
 use Event;
 
 class Plugin extends PluginBase
 {
+    /**
+     * @inheritDoc
+     */
     public function pluginDetails()
     {
         return [
@@ -19,6 +24,9 @@ class Plugin extends PluginBase
         ];
     }
 
+    /**
+     * @inheritDoc
+     */
     public function registerMarkupTags()
     {
         return [
@@ -37,6 +45,9 @@ class Plugin extends PluginBase
         ];
     }
 
+    /**
+     * @inheritDoc
+     */
     public function registerSettings()
     {
         return [
@@ -53,6 +64,9 @@ class Plugin extends PluginBase
         ];
     }
 
+    /**
+     * @inheritDoc
+     */
     public function registerPermissions()
     {
         return [
@@ -60,6 +74,9 @@ class Plugin extends PluginBase
         ];
     }
 
+    /**
+     * @inheritDoc
+     */
     public function boot()
     {
         Event::listen('backend.page.beforeDisplay', function ($controller, $action, $params) {
@@ -71,5 +88,22 @@ class Plugin extends PluginBase
                 }
             }
         });
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function register()
+    {
+        $this->registerConsoleCommand('imageresize:gc', ImageResizeGc::class);
+        $this->registerConsoleCommand('imageresize:clear', ImageResizeClear::class);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function registerSchedule($schedule)
+    {
+        $schedule->command('imageresize:gc')->daily();
     }
 }
