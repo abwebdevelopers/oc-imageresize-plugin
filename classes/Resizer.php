@@ -755,7 +755,7 @@ class Resizer
                 'pass' => false
             ],
             'insert' => [
-                'rules' => '',
+                'rules' => 'regex:/^(.+),(\d+),(\d+)$/',
                 'pass' => false,
             ]
         ];
@@ -802,9 +802,9 @@ class Resizer
                 case 'insert':
                     $exp = explode(',', $value);
                     $path = $exp[0];
-                    $position = (isset($exp[1]))? $exp[1] : null;
-                    $x = (isset($exp[2]))? $exp[2] : null;
-                    $y = (isset($exp[3]))? $exp[3] : null;
+                    $position = (isset($exp[1])) ? $exp[1] : null;
+                    $x = (isset($exp[2])) ? $exp[2] : null;
+                    $y = (isset($exp[3])) ? $exp[3] : null;
                     $this->im->insert($path, $position, $x, $y);
                     break;
                 default:
