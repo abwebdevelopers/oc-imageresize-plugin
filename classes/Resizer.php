@@ -568,6 +568,7 @@ class Resizer
                         }
                         break;
                     case 'cover':
+                    case 'crop':
                         $fit = true;
                         break;
                     case 'auto':
