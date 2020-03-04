@@ -1,50 +1,72 @@
 # October CMS Image Resize Plugin
 
-Resize and transform image on the fly in twig/October CMS
-
+Resize and transform images on the fly in Twig and October CMS.
 
 ## Requirements
 
 - October CMS
-- PHP >= 7.0
-- Fileinfo Extension
-- GD Library (>= 2.0) **or** Imagick PHP extension (>= 6.5.7)
-
+- PHP 7.0 or above
+- PHP `fileinfo` extension
+- PHP `gd` extension **or** `imagick` extension
 
 ## Getting started
 
-- [Installation (into October CMS)](#installation-into-october-cms)
+- [Installation](#installation)
 - [October CMS usage](#october-cms-usage)
 
+### Installation
 
-### Installation (into October CMS)
+You can install this plugin in a number of ways:
 
-To install this into your October site, either visit the plugin on October's Marketplace and click Add to Project.
+#### Via Composer
 
-Using composer: `composer require abwebdevelopers/oc-imageresize-plugin`
+Run the following commands in your October CMS project folder to install the plugin.
 
+```bash
+composer require abwebdevelopers/oc-imageresize-plugin
+php artisan october:up
+```
+
+#### Via Updates & Plugins screen
+
+In the October CMS backend, you can navigate to *Settings > Updates & Plugins* and then click the 
+*Install Plugins* button to install a plugin to your October CMS install. Add
+`ABWebDevelopers.ImageResize` to the search box to be able to select this plugin and install it.
+
+#### Via command-line
+
+Run the following command in your October CMS project folder to install the plugin.
+
+```bash
+php artisan plugin:install ABWebDevelopers.ImageResize
+```
 
 ### October CMS usage
 
-This plugin utilises [Intervention Image](https://github.com/Intervention/image)'s magical powers to easily resize and transform your images with ease, allow us to create a wrapper for it. Please note it does not do everything intervention/image does, however a fair few features are available.
+This plugin utilises [Intervention Image](https://github.com/Intervention/image)'s magical powers to resize and transform your images with ease. Please note that this plugin does not cover every feature of the Intervention Image library.
 
-**Basic Resizing**
+#### Basic Resizing
 
-Resizing requires at least one of the two dimension arguments, ` | resize(width, height)`
+**Twig Filter:** `| resize(int $width, int $height, array $options)`
+
+Basic resizing in Twig is done using the `| resize` filter. Resizing requires at least one of the two dimension arguments.
+
 ```
-Resize to W 1000px * H 700px:
+Resize to width 1000px and height 700px:
 <img src="{{ image | media | resize(1000, 700) }}">
 
-Resize to W 1000px * H auto:
+Resize to width 1000px and automatically calculate height:
 <img src="{{ image | media | resize(1000) }}">
 
-Resize to W auto * H 700px:
+Resize to height 700px and automatically calculate width:
 <img src="{{ image | media | resize(null, 700) }}">
 ```
 
-**Resizing Modes**
+A third argument is available, `options`, which allows you specify the resizing mode, along with any other image modifications which are detailed below.
 
-Resizing Modes are almost synonymous to CSS 3 `background-size` modes to make it easier to remember. Available options are: `auto` (default), `cover`, & `contain`, each doing the same as their CSS equivalent, with one additional mode: `stretch` which behaves how a basic `<img>` element would:
+#### Resizing Modes
+
+Resizing modes are almost synonymous to CSS3 `background-size` modes to make it easier to remember. Available options are: `auto` (default), `cover` and `contain`, each doing the same as their CSS equivalent, with one additional mode: `stretch` which behaves how a basic `<img>` element would:
 
 ```
 Default (image is displayed in its original size):
@@ -62,7 +84,7 @@ Stretch and morph it to fit exatly in the defined dimensions
 
 **Further Modifications**
 
-A few image adjustment tools have been implemented into this plugin, which utilise their intervention/image counterparts:
+A few image adjustment tools and filters have been implemented into this plugin, which utilise their Intervention Image library counterparts.
 
 Usage of the modifiers is simple, either add them in a `key: value` fashion in the 3rd argument of the resize filter, or by using the modify filter, as such:
 
@@ -98,7 +120,11 @@ A couple examples from the above:
 
 ### Filters (templates for configuration)
 
-Filters are similar to filters in intervention\image in the sense that you can define a list of rules for each image using the filter. A common example would be a basic thumbnail - you want this to always be `format: jpg`, `mode: cover`, `quality: 60`, `max_width: 200`, `max_height: 200` and maybe `background: #fff`.
+Filters in the Image Resize plugin, while following a similar concept to filters in Intervention Image, are handled differently in this plugin.
+
+Filters are specified in the *Settings > Image Resizer* page. By clicking the *Filters* tab at the top, you can specify a filter "code" which can apply a set of enhancements and modifications to an image. Once saved, you can then use the `filter` option in the `resize` and `modify` Twig filters to specify the filter to use.
+
+ A common example would be a basic thumbnail - you want this to always be `format: jpg`, `mode: cover`, `quality: 60`, `max_width: 200`, `max_height: 200` and maybe `background: #fff`.
 
 With filters, you can specify the above, call it something useful like `thumbnail`, then simply do the following:
 ```
@@ -115,16 +141,14 @@ Which will use the predefined list of modifiers and have them overwritten by any
 <img src="{{ image | media | modify({ filter: 'thumbnail', brightness: -30, contrast: 30 }) }}">
 ```
 
-which would use create an image in jpg format, cover, 60% quality, no bigger than 200x200, background #ff and darken and increase the constrast of it. Simple, flexible, powerful.
-
-**Please Note**
-
-There are a couple new modifiers for filters which include: `min_width`, `max_width`, `min_height`, `max_height` which all act as constraints for the dimensions of the images using filters. Should you use one, please note that if you use it with the `| resize(w, h)` function, your supplied dimensions will be ignored *if* they are out of bounds of the constraints. If the supplied dimensions are within the constraints, the image will be displayed at the supplied dimensions
+> There are a couple new modifiers for filters which include: `min_width`, `max_width`, `min_height`, `max_height` which all act as constraints for the dimensions of the images using filters.
+>
+>Should you use one, please note that if you use it with the `| resize(w, h)` function, your supplied dimensions will be ignored *if* they are out of bounds of the constraints.
 
 
 **Using the library in PHP**
 
-Should you want to implement your own use of this library outside of twig, you can use it in a very similar manner:
+Should you want to implement your own use of this library outside of Twig, you can use it in a very similar manner:
 
 ```
 $resizer = new \ABWebDevelopers\ImageResize\Classes\Resizer($image);
@@ -143,7 +167,6 @@ Which is synonymous to:
 ### Bugs and New Features
 
 We encourage you to open PRs and/or issues relating to any bugs or features so that everyone can benefit from them.
-
 
 ### Special thanks to
 
