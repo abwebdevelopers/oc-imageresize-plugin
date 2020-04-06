@@ -465,8 +465,8 @@ class Resizer
             return $this;
         }
 
-        $width = $this->options['width'];
-        $height = $this->options['height'];
+        $width = $this->options['width'] ?? null;
+        $height = $this->options['height'] ?? null;
 
         $hasMinMaxConstraint = array_key_exists('min_height', $this->options) ||
                                 array_key_exists('max_height', $this->options) ||

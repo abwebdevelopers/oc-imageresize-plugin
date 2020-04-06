@@ -11,3 +11,4 @@
 2.0.1: Fix bug (since 2.0.0) where the 'default 404 image' does not utilise the configured background/mode/quality
 2.0.2: Implement ability to add watermarks to images
 2.0.3: Add alias 'crop' to 'cover' resize mode
+2.0.4: Fix bug where exception is thrown when you do not provide height/width and instead only provide a max height/width
