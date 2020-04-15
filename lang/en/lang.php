@@ -121,6 +121,7 @@ return [
                                     'format' => 'Format',
                                     'quality' => 'Quality',
                                     'mode' => 'Mode',
+                                    'fit_position' => 'Fit Position (for cover mode)',
                                 ]
                             ],
                             'value' => [

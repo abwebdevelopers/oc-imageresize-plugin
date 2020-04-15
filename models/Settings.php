@@ -88,6 +88,7 @@ class Settings extends Model
         'format' => 'string',
         'quality' => 'int',
         'mode' => 'string',
+        'fit_position' => 'string',
     ];
 
     /**
@@ -117,6 +118,7 @@ class Settings extends Model
         'format' => 'bail|string|in:auto,jpg,png,bmp,gif,ico,webp',
         'quality' => 'bail|int|min:1|max:100',
         'mode' => 'bail|string|in:auto,cover,contain,stretch',
+        'fit_position' => 'bail|string|in:top-left,top,top-right,left,center,right,bottom-left,bottom,bottom-right',
     ];
 
     /**
@@ -152,6 +154,8 @@ class Settings extends Model
                     $data['filters'][$filterId] = $filter;
                 }
             }
+
+            $this->value = $data;
         }
     }
 

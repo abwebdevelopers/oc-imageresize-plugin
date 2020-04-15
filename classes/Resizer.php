@@ -509,14 +509,26 @@ class Resizer
                 }
 
                 $height = (int) ($width / $oratio);
-            } else {
-                if (($width === null) && ($height === null)) {
-                    // Neither dimension was given, so pretend they were
-                    $height = $oheight;
-                    $width = $owidth;
-                }
-                // Both dimensions were given
+            } else if ($width === null && $height === null) { // Neither were given
+                $height = $oheight;
+                $width = $owidth;
 
+                if (!empty($this->options['min_width'])) {
+                    $width = max($this->options['min_width'], $width);
+                }
+
+                if (!empty($this->options['max_width'])) {
+                    $width = min($this->options['max_width'], $width);
+                }
+
+                if (!empty($this->options['min_height'])) {
+                    $height = max($this->options['min_height'], $height);
+                }
+
+                if (!empty($this->options['max_height'])) {
+                    $height = min($this->options['max_height'], $height);
+                }
+            } else { // Both were given
                 if (!empty($this->options['min_width'])) {
                     $width = max($this->options['min_width'], $width);
                 }
@@ -544,6 +556,8 @@ class Resizer
 
             // Use fit mode?
             $fit = false;
+            // Get the position to fit to
+            $fitPosition = $this->options['fit_position'] ?? 'center';
 
             // Allow upsizing of the image? (default: false)
             $allowUpsizing = (!empty($this->options['upsize']) && (bool) $this->options['upsize']);
@@ -585,7 +599,11 @@ class Resizer
 
             // If using the fit mode, use fit
             if ($fit) {
-                $this->im->fit($width, $height);
+                $this->im->fit($width, $height, function ($constraint) use ($allowUpsizing) {
+                    if (!$allowUpsizing) {
+                        $constraint->upsize(); // prevent upsizing
+                    }
+                }, $fitPosition);
             } else {
                 // Otherwise resize using traditional resize method
                 $this->im->resize($resizeWidth, $resizeHeight, function ($constraint) use ($allowUpsizing) {

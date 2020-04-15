@@ -156,6 +156,7 @@ tabs:
                                         format: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.format'
                                         quality: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.quality'
                                         mode: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.mode'
+                                        fit_position: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.modifier.options.fit_position'
                                 value:
                                     label: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.value.label'
                                     comment: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.value.comment'
