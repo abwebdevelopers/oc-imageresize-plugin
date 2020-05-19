@@ -29,3 +29,5 @@
 2.1.2:
   - Clear old images (for the v2.1.0 directory change)
   - clear_old_cache_dir.php
+2.1.3:
+  - Fix - Generate absolute URLs instead of domain-relative URLs

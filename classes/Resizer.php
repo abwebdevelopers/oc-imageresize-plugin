@@ -375,7 +375,10 @@ class Resizer
      */
     public function getFirstTimeUrl(): string
     {
-        return '/imageresize/' . $this->hash . '.' . $this->outputExtension();
+        $url = '/imageresize/' . $this->hash . '.' . $this->outputExtension();
+        $url = url($url);
+
+        return $url;
     }
 
     /**
@@ -387,7 +390,10 @@ class Resizer
      */
     public function getCacheUrl(): string
     {
-        return '/' . $this->getRelativePath();
+        $url = '/' . $this->getRelativePath();
+        $url = url($url);
+
+        return $url;
     }
 
     /**
