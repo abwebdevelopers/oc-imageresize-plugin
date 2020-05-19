@@ -248,7 +248,7 @@ class Settings extends Model
         // }
 
         if ($subdirectoryPath !== null) {
-            $path .= '/' . $subdirectoryPath;
+            $path .= '/' . ltrim($subdirectoryPath, '/');
         }
 
         if ($absolute) {

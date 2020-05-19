@@ -11,3 +11,4 @@
 2.0.1: Fix bug (since 2.0.0) where the 'default 404 image' does not utilise the configured background/mode/quality
 2.0.2: Implement ability to add watermarks to images
 2.1.0: Move default imageresizecache directory (out of app/media) and store+serve images with file extension (change default imagresize cache clear to 1 week)
+2.1.1: Fix double slash issue in resized image URLs
