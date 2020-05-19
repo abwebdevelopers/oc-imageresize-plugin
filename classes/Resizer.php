@@ -886,11 +886,14 @@ class Resizer
      * Delete all cached images.
      *
      * @param Carbon|null $minAge Optional minimum age (delete before this date), `null` for all files.
+     * @param string|null $directory Optional directory to delete from
      * @return int Number of files deleted
      */
-    public static function clearFiles(Carbon $minAge = null): int
+    public static function clearFiles(Carbon $minAge = null, string $directory = null): int
     {
-        $files = collect(File::allFiles(Settings::getBasePath()))
+        $directory = $directory ?? Settings::getBasePath();
+
+        $files = collect(File::allFiles($directory))
             ->transform(function ($file) use ($minAge) {
                 $delete = true;
 
@@ -904,6 +907,17 @@ class Resizer
             })
             ->filter()
             ->toArray();
+
+        // Iterate each directory and delete it if it's empty
+        collect(File::directories($directory))
+            ->each(function ($dir) {
+                $files = File::allFiles($dir);
+
+                if (empty($files)) {
+                    File::deleteDirectory($dir);
+                    @unlink($dir);
+                }
+            });
 
         // Fire event to hook into and modify $files before deleting
         Event::fire('abweb.imageresize.clearFiles', [&$files, $minAge]);
