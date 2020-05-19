@@ -34,4 +34,4 @@
 2.1.4:
   - Add new Dashboard Widget as an alternative method of clearing the image resize cache
 2.1.5:
-  - Add new setting that runs `imageresize:clear` when `cache:clear` is run (if configured)
+  - Add new setting that runs `imageresize:clear` when `cache:clear` is run (if configured), and fix a Settings bug that was introduced from v2.1.0
