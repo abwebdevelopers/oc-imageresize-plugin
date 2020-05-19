@@ -135,7 +135,7 @@ return [
             ],
             'cache_directory' => [
                 'label' => 'Cache Directory',
-                'comment' => 'The directory to store cached resized images (absolute or relative to base_path). Default: storage/app/media/imageresizecache',
+                'comment' => 'The directory to store cached resized images (absolute or relative to base_path). Default: storage/temp/public/imageresizecache',
             ],
             'cache_clear_interval' => [
                 'label' => 'Cache Clear Interval',
