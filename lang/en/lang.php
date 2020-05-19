@@ -12,7 +12,8 @@ return [
     'settings' => [
         'tabs' => [
             'main' => 'Main',
-            'filters' => 'Filters'
+            'filters' => 'Filters',
+            'cache' => 'Caching',
         ],
         'sections' => [
             '_404' => [
@@ -131,6 +132,14 @@ return [
                         ]
                     ]
                 ]
+            ],
+            'cache_directory' => [
+                'label' => 'Cache Directory',
+                'comment' => 'The directory to store cached resized images (absolute or relative to base_path). Default: storage/app/media/imageresizecache',
+            ],
+            'cache_clear_interval' => [
+                'label' => 'Cache Clear Interval',
+                'comment' => 'Default/Empty: Disables auto clear. Else: Datetime intveral in human readable form (e.g. 12 hours, 5 days, 1 year)',
             ]
         ],
     ],

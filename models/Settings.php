@@ -14,10 +14,10 @@ class Settings extends Model
     public const DEFAULT_IMAGE_NOT_FOUND = 'plugins/abwebdevelopers/imageresize/assets/image-not-found.png';
 
     /** @var string Storage path for cached images, @see ::getBasePath() */
-    public const DEFAULT_STORAGE_PATH = 'storage/app/media/imageresizecache';
+    public const DEFAULT_STORAGE_PATH = 'storage/temp/public/imageresizecache';
 
     /** @var string The age a cached file must be before scheduled deletion, @see ::getAgeToDelete() */
-    public const DEFAULT_CACHE_CLEAR_AGE = '12 hours';
+    public const DEFAULT_CACHE_CLEAR_AGE = '1 week';
 
     /**
      * Implement settings model
@@ -59,6 +59,9 @@ class Settings extends Model
         'image_not_found_background' => 'required|regex:/^#([a-f0-9]{3}){1,2}$/i',
         'image_not_found_mode' => 'required|in:auto,cover,contain,stretch',
         'image_not_found_quality' => 'required|min:1|max:100',
+
+        'cache_directory' => 'nullable|string',
+        'cache_clear_interval' => 'nullable|string',
     ];
 
     /**
@@ -167,6 +170,14 @@ class Settings extends Model
      */
     public function beforeSave()
     {
+        if (empty($this->cache_directory)) {
+            $this->cache_directory = $this->getBasePath();
+        }
+
+        if (empty($this->cache_clear_interval)) {
+            $this->cache_clear_interval = $this->getAgeToDelete();
+        }
+
         if (!empty($this->value)) {
             $data = $this->value;
             if (!empty($data['filters'])) {
@@ -223,6 +234,19 @@ class Settings extends Model
     {
         $path = rtrim(static::DEFAULT_STORAGE_PATH, '/');
 
+        // Get the cache directory from the Settings
+        $that = static::instance();
+        if (!empty($that->cache_directory)) {
+            $path = rtrim($that->cache_directory, '/');
+        }
+
+        // // Uncomment to initialise a gitignore file for this directory
+        // if ($path === rtrim(static::DEFAULT_STORAGE_PATH, '/')) {
+        //     if (!is_file($path . '/.gitignore')) {
+        //         file_put_contents($path . '/.gitignore', "*\n!.gitignore\n!public");
+        //     }
+        // }
+
         if ($subdirectoryPath !== null) {
             $path .= '/' . $subdirectoryPath;
         }
@@ -242,6 +266,10 @@ class Settings extends Model
      */
     public static function getAgeToDelete(): string
     {
+        if (!empty($this->cache_clear_interval)) {
+            return $this->cache_clear_interval;
+        }
+
         return static::DEFAULT_CACHE_CLEAR_AGE;
     }
 }

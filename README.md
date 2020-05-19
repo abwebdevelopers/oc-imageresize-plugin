@@ -9,6 +9,9 @@ Resize and transform images on the fly in Twig and October CMS.
 - PHP `fileinfo` extension
 - PHP `gd` extension **or** `imagick` extension
 
+Please note that GD is bound by PHP's memory limits, whereas Imagick isn't. If your site returns 503 when resizing images, try Imagick (can be changed via Settings).
+
+
 ## Getting started
 
 - [Installation](#installation)
@@ -51,7 +54,7 @@ This plugin utilises [Intervention Image](https://github.com/Intervention/image)
 
 Basic resizing in Twig is done using the `| resize` filter. Resizing requires at least one of the two dimension arguments.
 
-```
+```html
 Resize to width 1000px and height 700px:
 <img src="{{ image | media | resize(1000, 700) }}">
 
@@ -68,19 +71,21 @@ A third argument is available, `options`, which allows you specify the resizing 
 
 Resizing modes are almost synonymous to CSS3 `background-size` modes to make it easier to remember. Available options are: `auto` (default), `cover` and `contain`, each doing the same as their CSS equivalent, with one additional mode: `stretch` which behaves how a basic `<img>` element would:
 
-```
+```html
 Default (image is displayed in its original size):
 <img src="{{ image | media | resize(1000, 700, { mode: 'auto' }) }}">
 
 Resize the background image to make sure the image is fully visible
 <img src="{{ image | media | resize(1000, 700, { mode: 'contain' }) }}">
 
-Resize the background image to cover the entire container, even if it has to stretch the image or cut a little bit off one of the edges
+Resize the background image to cover the entire container, even if it has to cut a little bit off one of the edges
 <img src="{{ image | media | resize(1000, 700, { mode: 'cover' }) }}">
 
 Stretch and morph it to fit exatly in the defined dimensions
 <img src="{{ image | media | resize(1000, 700, { mode: 'stretch' }) }}">
 ```
+
+When using `mode: cover` (alias `mode: crop`) you may specify the `fit_position` modifier to choose where the center of the resize should be focused. 
 
 **Further Modifications**
 
@@ -88,7 +93,7 @@ A few image adjustment tools and filters have been implemented into this plugin,
 
 Usage of the modifiers is simple, either add them in a `key: value` fashion in the 3rd argument of the resize filter, or by using the modify filter, as such:
 
-```
+```html
 <img src="{{ image | media | resize(1000, 700, { modifier: value }) }}">
 <img src="{{ image | media | modify({ modifier: value }) }}"> <!-- Same size, just modified -->
 ```
@@ -110,7 +115,7 @@ Usage of the modifiers is simple, either add them in a `key: value` fashion in t
 | Colorize      | colourise/colorize   | string (format: r,g,b) | `255,0,0`, `0,50,25`     | Colorize the image. String containing 3 numbers (0-255), comma separated. Both codes are accepted (one just maps to the other) |
 
 A couple examples from the above:
-```
+```html
 <img src="{{ image | media | resize(1000, 700, { brightness: 50 }) }}">
 <img src="{{ image | media | resize(1000, 700, { invert: true }) }}">
 <img src="{{ image | media | resize(1000, 700, { rotate: 45 }) }}">
@@ -127,7 +132,7 @@ Filters are specified in the *Settings > Image Resizer* page. By clicking the *F
  A common example would be a basic thumbnail - you want this to always be `format: jpg`, `mode: cover`, `quality: 60`, `max_width: 200`, `max_height: 200` and maybe `background: #fff`.
 
 With filters, you can specify the above, call it something useful like `thumbnail`, then simply do the following:
-```
+```html
 <!-- display thumbnail -->
 <img src="{{ image | media | modify({ filter: 'thumbnail' }) }}">
 or
@@ -137,7 +142,7 @@ or
 
 Which will use the predefined list of modifiers and have them overwritten by any that are supplied, for example:
 
-```
+```html
 <img src="{{ image | media | modify({ filter: 'thumbnail', brightness: -30, contrast: 30 }) }}">
 ```
 
@@ -150,7 +155,7 @@ Which will use the predefined list of modifiers and have them overwritten by any
 
 Should you want to implement your own use of this library outside of Twig, you can use it in a very similar manner:
 
-```
+```php
 $resizer = new \ABWebDevelopers\ImageResize\Classes\Resizer($image);
 $resizer->resize(800, 250, [
     'rotate' => 45
@@ -160,7 +165,7 @@ $resizer->resize(800, 250, [
 
 Which is synonymous to:
 
-```
+```html
 <img src="{{ image | resize(800, 250, { rotate: 45 }) }}">
 ```
 

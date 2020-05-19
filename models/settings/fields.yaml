@@ -162,3 +162,17 @@ tabs:
                                     comment: 'abwebdevelopers.imageresize::lang.settings.fields.filters.fields.rules.fields.value.comment'
                                     type: text
                                     span: right
+        cache_directory:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.cache_directory.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.fields.cache_directory.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.cache'
+            span: left
+            type: text
+            default: 'storage/app/media/imageresizecache'
+        cache_clear_interval:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.cache_clear_interval.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.fields.cache_clear_interval.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.cache'
+            span: right
+            type: text
+            default: 604800

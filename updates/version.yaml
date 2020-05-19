@@ -10,6 +10,4 @@
 2.0.0: Optimise image resizing on initial pageload by offloading to separate thread (by resizing when requesting images)
 2.0.1: Fix bug (since 2.0.0) where the 'default 404 image' does not utilise the configured background/mode/quality
 2.0.2: Implement ability to add watermarks to images
-2.0.3: Add alias 'crop' to 'cover' resize mode
-2.0.4: Fix bug where exception is thrown when you do not provide height/width and instead only provide a max height/width
-2.0.5: Add Fit Position setting
+2.1.0: Move default imageresizecache directory (out of app/media) and store+serve images with file extension (change default imagresize cache clear to 1 week)

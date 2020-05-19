@@ -78,13 +78,26 @@ class Resizer
      * Instantiate an instance using an image path
      *
      * @param string|null $image
-     * @return void
+     * @return Resizer
      */
-    public static function using(string $image = null)
+    public static function using(string $image = null): Resizer
     {
         $that = new static($image, true);
 
         return $that;
+    }
+
+    /**
+     * Set the format cache
+     *
+     * @param array $cache
+     * @return $this
+     */
+    public function setFormatCache(array $cache)
+    {
+        $this->formatCache = $cache;
+
+        return $this;
     }
 
     /**
@@ -330,6 +343,16 @@ class Resizer
     }
 
     /**
+     * Get the expected output extension
+     *
+     * @return string
+     */
+    public function outputExtension(): string
+    {
+        return $this->detectFormat(true)[1];
+    }
+
+    /**
      * Get the path relative to the base directory
      *
      * @return string
@@ -339,7 +362,8 @@ class Resizer
         $rel = '/' . substr($this->hash, 0, 3) .
             '/' . substr($this->hash, 3, 3) .
             '/' . substr($this->hash, 6, 3) .
-            '/' . $this->hash;
+            '/' . $this->hash .
+            '.' . $this->outputExtension();
 
         return Settings::getBasePath($rel);
     }
@@ -351,7 +375,7 @@ class Resizer
      */
     public function getFirstTimeUrl(): string
     {
-        return '/imageresize/' . $this->hash;
+        return '/imageresize/' . $this->hash . '.' . $this->outputExtension();
     }
 
     /**
@@ -377,6 +401,7 @@ class Resizer
             return [
                 'image' => $this->image,
                 'options' => $this->options,
+                'formatCache' => $this->formatCache,
             ];
         });
 
@@ -469,9 +494,9 @@ class Resizer
         $height = $this->options['height'] ?? null;
 
         $hasMinMaxConstraint = array_key_exists('min_height', $this->options) ||
-                                array_key_exists('max_height', $this->options) ||
-                                array_key_exists('min_width', $this->options) ||
-                                array_key_exists('max_width', $this->options);
+            array_key_exists('max_height', $this->options) ||
+            array_key_exists('min_width', $this->options) ||
+            array_key_exists('max_width', $this->options);
 
         // Get the image resource entity if not already loaded
         $this->initResource();
@@ -647,6 +672,9 @@ class Resizer
      */
     private function detectFormat(bool $useNewFormat = false): array
     {
+        // Convert standard boolean to numeric boolean (for array access)
+        $useNewFormat = ($useNewFormat) ? 1 : 0;
+
         // If it's already calculated these, then return the cached copy of it
         if (!empty($this->formatCache[$useNewFormat])) {
             return $this->formatCache[$useNewFormat];
@@ -878,7 +906,7 @@ class Resizer
             ->toArray();
 
         // Fire event to hook into and modify $files before deleting
-        Event::fire('abweb.imageresize.clearFiles', [ &$files, $minAge ]);
+        Event::fire('abweb.imageresize.clearFiles', [&$files, $minAge]);
 
         // Delete the files
         File::delete($files);
