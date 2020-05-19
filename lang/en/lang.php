@@ -143,4 +143,10 @@ return [
             ]
         ],
     ],
+    'widgets' => [
+        'clear' => [
+            'cleared' => 'Successfully cleared all resized cached images (:size)',
+            'showGcInterval' => 'Show Garbage Collection Interval',
+        ]
+    ],
 ];

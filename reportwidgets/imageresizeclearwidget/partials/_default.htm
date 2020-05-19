@@ -1,0 +1,12 @@
+<div id="imageresizeclearwidget" class="report-widget">
+    <h3><?= e(trans($this->title())) ?></h3>
+    <?php if ($this->garbageCollectionInterval() && $this->showGarbageCollectionInterval()): ?>
+        <p style="color: #999;">Garbage collection interval: <?= e($this->garbageCollectionInterval()) ?></p>
+    <?php endif; ?>
+    <button type="button" class="btn btn-success"
+            title="Clearing the cache will NOT remove the original images, it will only remove the cached resized copies"
+            data-request="<?= $this->getEventHandler('onClear') ?>"
+            data-request-success="$('#imageresizeclearwidget').replaceWith(data.partial)">
+        Clear all resized images (<?= $this->size() ?>) | <span class="fa icon-trash"></span>
+    </button>
+</div>

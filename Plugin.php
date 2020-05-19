@@ -6,6 +6,7 @@ use System\Classes\PluginBase;
 use ABWebDevelopers\ImageResize\Classes\Resizer;
 use ABWebDevelopers\ImageResize\Commands\ImageResizeClear;
 use ABWebDevelopers\ImageResize\Commands\ImageResizeGc;
+use ABWebDevelopers\ImageResize\ReportWidgets\ImageResizeClearWidget;
 use Event;
 
 class Plugin extends PluginBase
@@ -104,6 +105,17 @@ class Plugin extends PluginBase
      */
     public function registerSchedule($schedule)
     {
-        $schedule->command('imageresize:gc')->daily();
+        // This is throttled by your settings, it won't necessarily clear all images every 5 minutes
+        $schedule->command('imageresize:gc')->everyFiveMinutes();
+    }
+
+    public function registerReportWidgets()
+    {
+        return [
+            ImageResizeClearWidget::class => [
+                'label' => 'Clear Image Resizer Cache',
+                'context' => 'dashboard',
+            ],
+        ];
     }
 }

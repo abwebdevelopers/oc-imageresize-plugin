@@ -266,8 +266,10 @@ class Settings extends Model
      */
     public static function getAgeToDelete(): string
     {
-        if (!empty($this->cache_clear_interval)) {
-            return $this->cache_clear_interval;
+        $that = static::instance();
+
+        if (!empty($that->cache_clear_interval)) {
+            return $that->cache_clear_interval;
         }
 
         return static::DEFAULT_CACHE_CLEAR_AGE;
