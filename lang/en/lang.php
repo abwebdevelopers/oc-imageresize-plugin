@@ -140,6 +140,10 @@ return [
             'cache_clear_interval' => [
                 'label' => 'Cache Clear Interval',
                 'comment' => 'Default/Empty: Disables auto clear. Else: Datetime intveral in human readable form (e.g. 12 hours, 5 days, 1 year)',
+            ],
+            'cleanup_on_cache_clear' => [
+                'label' => 'Clear Images on Cache Clear?',
+                'comment' => 'When running `artisan cache:clear` should all images be cleared as well? Default: false'
             ]
         ],
     ],

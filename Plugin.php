@@ -6,8 +6,10 @@ use System\Classes\PluginBase;
 use ABWebDevelopers\ImageResize\Classes\Resizer;
 use ABWebDevelopers\ImageResize\Commands\ImageResizeClear;
 use ABWebDevelopers\ImageResize\Commands\ImageResizeGc;
+use ABWebDevelopers\ImageResize\Models\Settings;
 use ABWebDevelopers\ImageResize\ReportWidgets\ImageResizeClearWidget;
 use Event;
+use Illuminate\Support\Facades\Artisan;
 
 class Plugin extends PluginBase
 {
@@ -89,6 +91,12 @@ class Plugin extends PluginBase
                 }
             }
         });
+
+        if (Settings::cleanupOnCacheClear()) {
+            Event::listen('cache:cleared', function () {
+                Artisan::call('imageresize:clear');
+            });
+        }
     }
 
     /**

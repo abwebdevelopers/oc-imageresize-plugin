@@ -62,6 +62,7 @@ class Settings extends Model
 
         'cache_directory' => 'nullable|string',
         'cache_clear_interval' => 'nullable|string',
+        'cleanup_on_cache_clear' => 'nullable|boolean',
     ];
 
     /**
@@ -170,16 +171,17 @@ class Settings extends Model
      */
     public function beforeSave()
     {
-        if (empty($this->cache_directory)) {
-            $this->cache_directory = $this->getBasePath();
-        }
-
-        if (empty($this->cache_clear_interval)) {
-            $this->cache_clear_interval = $this->getAgeToDelete();
-        }
-
         if (!empty($this->value)) {
             $data = $this->value;
+
+            if (empty($data['cache_directory'])) {
+                $data['cache_directory'] = $this->getBasePath();
+            }
+
+            if (empty($data['cache_clear_interval'])) {
+                $data['cache_clear_interval'] = $this->getAgeToDelete();
+            }
+
             if (!empty($data['filters'])) {
                 foreach ($data['filters'] as $filterId => $filter) {
                     $validationData = [];
@@ -273,5 +275,12 @@ class Settings extends Model
         }
 
         return static::DEFAULT_CACHE_CLEAR_AGE;
+    }
+
+    public static function cleanupOnCacheClear(): bool
+    {
+        $that = static::instance();
+
+        return $that->cleanup_on_cache_clear ?? false;
     }
 }

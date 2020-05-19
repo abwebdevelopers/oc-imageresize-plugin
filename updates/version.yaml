@@ -33,3 +33,5 @@
   - Fix - Generate absolute URLs instead of domain-relative URLs
 2.1.4:
   - Add new Dashboard Widget as an alternative method of clearing the image resize cache
+2.1.5:
+  - Add new setting that runs `imageresize:clear` when `cache:clear` is run (if configured)

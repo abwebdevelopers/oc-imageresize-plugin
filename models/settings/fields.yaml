@@ -176,3 +176,9 @@ tabs:
             span: right
             type: text
             default: 604800
+        cleanup_on_cache_clear:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.cleanup_on_cache_clear.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.fields.cleanup_on_cache_clear.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.cache'
+            span: left
+            type: checkbox
