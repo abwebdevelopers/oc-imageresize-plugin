@@ -35,3 +35,5 @@
   - Add new Dashboard Widget as an alternative method of clearing the image resize cache
 2.1.5:
   - Add new setting that runs `imageresize:clear` when `cache:clear` is run (if configured), and fix a Settings bug that was introduced from v2.1.0
+2.1.6:
+  - Fix migration (2.1.2 migration) that causes installations to fail (due to plugin settings not existing for new projects at time of execution)
