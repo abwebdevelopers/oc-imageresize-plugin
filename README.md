@@ -123,6 +123,9 @@ A couple examples from the above:
 <img src="{{ image | media | resize(1000, 700, { colorize: '65,35,5' }) }}">
 ```
 
+**Please Note:** In order to encode images to WebP format, you will need to enable WebP support on your chosen driver (Imagick or GD). It's likely that by default you will not have WebP support, so using this format may result in errors or broken images. 
+
+
 ### Filters (templates for configuration)
 
 Filters in the Image Resize plugin, while following a similar concept to filters in Intervention Image, are handled differently in this plugin.
