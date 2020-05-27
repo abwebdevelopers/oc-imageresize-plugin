@@ -2,14 +2,18 @@
 
 namespace ABWebDevelopers\ImageResize;
 
-use System\Classes\PluginBase;
 use ABWebDevelopers\ImageResize\Classes\Resizer;
 use ABWebDevelopers\ImageResize\Commands\ImageResizeClear;
 use ABWebDevelopers\ImageResize\Commands\ImageResizeGc;
 use ABWebDevelopers\ImageResize\Models\Settings;
 use ABWebDevelopers\ImageResize\ReportWidgets\ImageResizeClearWidget;
+use App;
+use Artisan;
+use DB;
 use Event;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Database\QueryException;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use System\Classes\PluginBase;
 
 class Plugin extends PluginBase
 {
@@ -92,11 +96,22 @@ class Plugin extends PluginBase
             }
         });
 
-        if (Settings::cleanupOnCacheClear()) {
-            Event::listen('cache:cleared', function () {
-                Artisan::call('imageresize:clear');
+        Event::listen('cache:cleared', function () {
+            $this->ifDatabaseExists(function () {
+                if (Settings::cleanupOnCacheClear()) {
+                    if (App::runningInConsole()) {
+                        $output = new ConsoleOutput();
+                        $output->writeln('<info>Imagesizer: Deleting cached resized images...</info>');
+                    }
+
+                    Artisan::call('imageresize:clear');
+
+                    if (App::runningInConsole()) {
+                        $output->writeln('<info>Imagesizer: ' . Artisan::output() . '</info>');
+                    }
+                }
             });
-        }
+        });
     }
 
     /**
@@ -117,6 +132,9 @@ class Plugin extends PluginBase
         $schedule->command('imageresize:gc')->everyFiveMinutes();
     }
 
+    /**
+     * @inheritDoc
+     */
     public function registerReportWidgets()
     {
         return [
@@ -125,5 +143,25 @@ class Plugin extends PluginBase
                 'context' => 'dashboard',
             ],
         ];
+    }
+
+    /**
+     * Run the callback only if/when the database exists (and system_settings table exists).
+     * 
+     * @param \Closure $callback
+     * @return mixed
+     */
+    public function ifDatabaseExists(\Closure $callback)
+    {
+        $canConnectToDatabase = false;
+        try {
+            // Test database connection (throw exception if no DB is configured yet)
+            $canConnectToDatabase = DB::table('system_settings')->exists();
+        } catch (QueryException $e) {
+        }
+
+        if ($canConnectToDatabase) {
+            return $callback();
+        }
     }
 }
