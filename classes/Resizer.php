@@ -201,7 +201,7 @@ class Resizer
             if (preg_match('/^(https?:\/\/)/i', $image)) {
                 $path = $this->getAbsolutePathOfLocalUrl($image);
 
-                // If path is string (local path, if local url)
+                // If path is string (If URL was local, it will be the local path)
                 if ($path !== null) {
                     $image = $path;
                 }
