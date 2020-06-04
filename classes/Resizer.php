@@ -121,8 +121,13 @@ class Resizer
         /* Root paths to check files against, first we'll try relative to the base_path (document root) followed by a local disk check */
         $roots = [
             base_path(),
-            Storage::disk('local')->getDriver()->getAdapter()->getPathPrefix(),
         ];
+
+        // Add local storage path too, if it exists
+        $localDisk = Storage::disk('local');
+        if ($localDisk) {
+            $roots[] = $localDisk->getDriver()->getAdapter()->getPathPrefix();
+        }
 
         Event::fire(static::EVENT_PREFIX . 'getAbsolutePathOfLocalUrl', [
             &$url,
