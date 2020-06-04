@@ -8,12 +8,15 @@ use Carbon\Carbon;
 use Exception;
 use Event;
 use File;
+use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManagerStatic as Image;
 use Validator;
 
 class Resizer
 {
     public const CACHE_PREFIX = 'image_resize_';
+
+    public const EVENT_PREFIX = 'abweb.imageresize.';
 
     /**
      * A list of computed values to override $options
@@ -101,6 +104,72 @@ class Resizer
     }
 
     /**
+     * Get the absolute path of an image by passing it a local URL (https://mysite.com/themes/demo/assets/logo.png)
+     *
+     * @param string $url
+     * @return string|null Null if remote URL or file not exists
+     */
+    protected function getAbsolutePathOfLocalUrl(string $url): ?string
+    {
+        if (empty($url)) {
+            return false;
+        }
+
+        // Local path (allow events to override logic)
+        $localPath = null;
+
+        /* Root paths to check files against, first we'll try relative to the base_path (document root) followed by a local disk check */
+        $roots = [
+            base_path(),
+            Storage::disk('local')->getDriver()->getAdapter()->getPathPrefix(),
+        ];
+
+        Event::fire(static::EVENT_PREFIX . 'getAbsolutePathOfLocalUrl', [
+            &$url,
+            &$roots,
+            &$localPath,
+        ]);
+
+        // If the event sets localPath to false, then assume it's not local (is remote URL)
+        if ($localPath === false) {
+            return null;
+        }
+
+        // If the event sets localPath to a string, then assume it's a local path
+        if (is_string($localPath)) {
+            // Convert to absolute, if needed.
+            return (strpos($localPath, '/') === 0) ? $localPath : base_path($localPath);
+        }
+
+        // No event handler
+
+        // Check if hosts match (without www. prefix)
+        $host = preg_replace('/^www\./', '', parse_url((string) url('/'), PHP_URL_HOST), 1);
+        $found = preg_replace('/^www\./', '', parse_url((string) $url, PHP_URL_HOST), 1);
+
+        // It's local if the hosts match, or if no host was found in the URL, or both are localhost/127.0.0.1
+        $isLocal = ($host === $found) ||
+            empty($found) ||
+            (($host === '127.0.0.1' || $host === 'localhost') && ($found === '127.0.0.1' || $found === 'localhost'));
+
+        if ($isLocal) {
+            $path = parse_url($url, PHP_URL_PATH);
+
+            // iterate each possible root directory to try find the file
+            foreach ($roots as $root) {
+                $maybe = $root . DIRECTORY_SEPARATOR . ltrim($path, '/');
+
+                if (file_exists($maybe)) {
+                    // if the file exists, assume this is the path to the file we're expecting
+                    return $maybe;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Specify the image to use
      *
      * @param string $image
@@ -115,8 +184,6 @@ class Resizer
         }
 
         if ($image !== null) {
-            $absolutePath = false;
-
             // Support JSON objects containing path property, e.g: {"path":"USETHISPATH",...}
             if (substr($image, 0, 2) === '{"') {
                 $attempt = json_decode($image);
@@ -126,17 +193,19 @@ class Resizer
                 }
             }
 
-            // Check if the image is an absolute url to the same server, if so get the storage path of the image
-            $regex = '/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '(?::\d+)?\/(.+)$/';
-            if (preg_match($regex, $image, $m)) {
-                // Convert spaces, not going to urldecode as it will mess with pluses
-                $image = base_path(str_replace('%20', ' ', $m[1]));
-                $absolutePath = true;
-            }
+            if (preg_match('/^(https?:\/\/)/i', $image)) {
+                $path = $this->getAbsolutePathOfLocalUrl($image);
 
-            // If not an absolute path, set it to an absolute path
-            if (!$absolutePath) {
-                $image = base_path(trim($image, '/'));
+                // If path is string (local path, if local url)
+                if ($path !== null) {
+                    $image = $path;
+                }
+            } elseif (strpos($image, '/') !== 0) {
+                $path = base_path($image);
+
+                if (file_exists($path)) {
+                    $image = $path;
+                }
             }
         }
 
@@ -850,7 +919,9 @@ class Resizer
                     break;
                 case 'colorize':
                     list($r, $g, $b) = explode(',', $value);
+
                     $this->im->colorize($r, $g, $b);
+
                     break;
                 case 'insert':
                     $exp = explode(',', $value);
@@ -858,7 +929,9 @@ class Resizer
                     $position = (isset($exp[1])) ? $exp[1] : null;
                     $x = (isset($exp[2])) ? $exp[2] : null;
                     $y = (isset($exp[3])) ? $exp[3] : null;
+
                     $this->im->insert($path, $position, $x, $y);
+
                     break;
                 default:
                     // Pass argument if configured to do so:
@@ -926,7 +999,7 @@ class Resizer
             });
 
         // Fire event to hook into and modify $files before deleting
-        Event::fire('abweb.imageresize.clearFiles', [&$files, $minAge]);
+        Event::fire(static::EVENT_PREFIX . 'clearFiles', [&$files, $minAge]);
 
         // Delete the files
         File::delete($files);
