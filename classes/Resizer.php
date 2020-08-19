@@ -933,4 +933,59 @@ class Resizer
 
         return count($files);
     }
+
+    /**
+     * Parse a given HTML string for images and replace them with the resized copies as per the given modifications.
+     * 
+     * CAUTION: Experimental
+     *
+     * This uses regex to find and replace HTML content which is often frowned upon. You may supply your own custom
+     * regexes, or you may rely on the defaults (which may change in future versions of this plugin soo beware).
+     * 
+     * By default this will search img elements with a src, data-src or lazy-src attribute, as well as any "style"
+     * attribute with a background or background-image CSS rule (of which contains a "url()" to an image)
+     * 
+     * Example Usage (a richeditor field that contains custom embedded images that require OTF optimisation or resizing):
+     *      {{ service.description | filterHtmlImageResize(600, 600, { mode: 'contain' }) }}
+     *      {{ service.description | filterHtmlImageModifiy({ quality: 60 }) }}
+     * 
+     * @param string $html The HTML to find/replace images
+     * @param int|null $width
+     * @param int|null $height
+     * @param array $options
+     * @param array $regexes List of regexes (keys) and callbacks (values) to use in the preg_replace_callback.
+     * @param int $limit See preg_replace_callback $limit docs
+     * @return string The same HTML but with images replaced with their resized URL equivalents
+     */
+    public static function parseFindReplaceImages(
+        string $html,
+        int $width = null,
+        int $height = null,
+        array $options = [],
+        array $regexes = null,
+        int $limit = 255
+    ): string {
+        $regexes = ($regexes !== null) ? $regexes : [
+            '/(<img [^>]*(?:src|data-src|lazy-src)=)"([^"]+)"/' => function ($match) use ($width, $height, $options) {
+                $resizer = new Resizer((string) $match[2]);
+
+                $url = $resizer->resize($width, $height, $options);
+
+                return $match[1] . '"' . $url . '"';
+            },
+            '/(style="([^"]*)background(-image)?:(\s*[^"]+)?url\(\'?)(.+?)(\'?\))"/' => function ($match) use ($width, $height, $options) {
+                $resizer = new Resizer((string) $match[2]);
+
+                $url = $resizer->resize($width, $height, $options);
+
+                return $match[1] . $url . $match[6];
+            },
+        ];
+
+        foreach ($regexes as $regex => $callback) {
+            $html = preg_replace_callback($regex, $callback, $html, $limit);
+        }
+
+        return $html;
+    }
 }

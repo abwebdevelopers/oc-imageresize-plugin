@@ -11,6 +11,7 @@ use App;
 use Artisan;
 use DB;
 use Event;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\QueryException;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use System\Classes\PluginBase;
@@ -41,12 +42,36 @@ class Plugin extends PluginBase
                 'resize' => function ($image, $width, $height = null, $options = []) {
                     $resizer = new Resizer((string) $image);
 
-                    return $resizer->resize((int) $width, (int) $height, (array) $options);
+                    $width = ($width !== null) ? (int) $width : null;
+                    $height = ($height !== null) ? (int) $height : null;
+                    $options = ($options instanceof Arrayable) ? $options->toArray() : (array) $options;
+
+                    return $resizer->resize($width, $height, $options);
                 },
                 'modify' => function ($image, $options = []) {
                     $resizer = new Resizer((string) $image);
 
-                    return $resizer->resize(null, null, (array) $options);
+                    $width = null;
+                    $height = null;
+                    $options = ($options instanceof Arrayable) ? $options->toArray() : (array) $options;
+
+                    return $resizer->resize($width, $height, $options);
+                },
+                'filterHtmlImageResize' => function ($html, $width, $height = null, $options = []) {
+                    $html = (string) $html;
+                    $width = ($width !== null) ? (int) $width : null;
+                    $height = ($height !== null) ? (int) $height : null;
+                    $options = ($options instanceof Arrayable) ? $options->toArray() : (array) $options;
+
+                    return Resizer::parseFindReplaceImages($html, $width, $height, $options);
+                },
+                'filterHtmlImageModify' => function ($html, $options = []) {
+                    $html = (string) $html;
+                    $width = null;
+                    $height = null;
+                    $options = ($options instanceof Arrayable) ? $options->toArray() : (array) $options;
+
+                    return Resizer::parseFindReplaceImages($html, $width, $height, $options);
                 }
             ]
         ];

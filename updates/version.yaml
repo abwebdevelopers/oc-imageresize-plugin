@@ -39,3 +39,5 @@
   - Fix migration (2.1.2 migration) that causes installations to fail (due to plugin settings not existing for new projects at time of execution)
 2.1.7:
   - Fix - Update plugin's boot method to not directly reference Settings until DB connection is established
+2.1.8:
+  - Added twig filter to parse and resize/modify images (via regex) using twig filter(s)
