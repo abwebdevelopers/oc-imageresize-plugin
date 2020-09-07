@@ -41,3 +41,5 @@
   - Fix - Update plugin's boot method to not directly reference Settings until DB connection is established
 2.1.8:
   - Added twig filter to parse and resize/modify images (via regex) using twig filter(s)
+2.1.9:
+  - Improvement to the detection of the original image's mime type (uses less system resources)

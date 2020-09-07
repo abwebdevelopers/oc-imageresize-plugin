@@ -10,6 +10,7 @@ use Event;
 use File;
 use Intervention\Image\ImageManagerStatic as Image;
 use Validator;
+use Illuminate\Support\Str;
 
 class Resizer
 {
@@ -690,11 +691,8 @@ class Resizer
         if ($useNewFormat && !empty($this->options['format']) && ($this->options['format'] !== 'auto')) {
             $format = $this->options['format'];
         } else {
-            // Get the image resource entity if not already loaded
-            $this->initResource();
-
-            // Get format from image
-            $format = strtolower(explode('/', $this->original->mime())[1]);
+            $format = File::mimeType($this->getImagePath());
+            $format = Str::after($format, '/');
         }
 
         // For the most part, the mime is the format: image/{format}
