@@ -12,8 +12,8 @@
         }
     ],
     "require": {
-        "intervention/image": "2.4.*",
-        "php": ">=7.0",
-        "composer/installers": "~1.0"
+        "php": ">=7.2.9",
+        "composer/installers": "~1.0",
+        "intervention/image": "^2.5.1"
     }
 }
