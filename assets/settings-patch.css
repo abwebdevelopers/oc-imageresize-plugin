@@ -1,4 +1,0 @@
-/* Show 'comment' on new line for colorpickers instead of starting inline */
-.field-colorpicker + .help-block {
-    clear: both;
-}

@@ -111,16 +111,6 @@ class Plugin extends PluginBase
      */
     public function boot()
     {
-        Event::listen('backend.page.beforeDisplay', function ($controller, $action, $params) {
-            if ($controller instanceof \System\Controllers\Settings) {
-                // Check this is the settings page for this plugin:
-                if ($params === ['abwebdevelopers', 'imageresize', 'settings']) {
-                    // Add CSS (minor patch)
-                    $controller->addCss('/plugins/abwebdevelopers/imageresize/assets/settings-patch.css');
-                }
-            }
-        });
-
         Event::listen('cache:cleared', function () {
             $this->ifDatabaseExists(function () {
                 if (Settings::cleanupOnCacheClear()) {

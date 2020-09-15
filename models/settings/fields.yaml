@@ -13,7 +13,7 @@ tabs:
             default: gd
         background:
             label: 'abwebdevelopers.imageresize::lang.settings.fields.background.label'
-            comment: 'abwebdevelopers.imageresize::lang.settings.fields.background.comment'
+            commentAbove: 'abwebdevelopers.imageresize::lang.settings.fields.background.comment'
             tab: 'abwebdevelopers.imageresize::lang.settings.tabs.main'
             span: right
             type: colorpicker
@@ -67,7 +67,7 @@ tabs:
             type: mediafinder
         image_not_found_background:
             label: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_background.label'
-            comment: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_background.comment'
+            commentAbove: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_background.comment'
             tab: 'abwebdevelopers.imageresize::lang.settings.tabs.main'
             span: right
             type: colorpicker
