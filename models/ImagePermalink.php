@@ -26,6 +26,16 @@ class ImagePermalink extends Model
     ];
 
     /**
+     * When casting this object to string, retrieve the Permalink URL
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->permalink_url;
+    }
+
+    /**
      * Scope all results by those matching the identifier (should always be only one)
      *
      * @param Builder $query

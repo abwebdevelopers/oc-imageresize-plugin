@@ -489,6 +489,8 @@ class Resizer
      */
     public function resizePermalink(string $identifier, int $width = null, int $height = null, array $options = []): ImagePermalink
     {
+        $identifier = trim($identifier, '/');
+
         $width = ($width > 0) ? $width : null;
         $height = ($height > 0) ? $height : null;
 
