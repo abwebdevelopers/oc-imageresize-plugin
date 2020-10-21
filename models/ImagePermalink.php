@@ -157,6 +157,7 @@ class ImagePermalink extends Model
         $this->resize(); // if not resized
 
         header('Content-Type: ' . $this->mime);
+        header('Content-Length: ' . filesize($this->absolute_path));
         echo file_get_contents($this->absolute_path);
         exit();
     }
