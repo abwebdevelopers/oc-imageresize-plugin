@@ -32,5 +32,9 @@ Route::get('imageresize/{hash}.{ext}', function (string $hash, string $ext) {
 Route::get('imageresizestatic/{identifier}.{ext}', function (string $identifier, string $ext) {
     $perma = ImagePermalink::withIdentifer($identifier);
 
+    if ($perma === null) {
+        $perma = ImagePermalink::defaultNotFound();
+    }
+
     return $perma->render();
 })->where('identifier', '(.+?)');

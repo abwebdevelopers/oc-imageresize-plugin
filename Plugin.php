@@ -41,30 +41,17 @@ class Plugin extends PluginBase
     {
         return [
             'filters' => [
-                'resizePermalink' => function ($image, $identifier, $width, $height = null, $options = []) {
-                    $resizer = new Resizer((string) $image);
-
-                    $width = ($width !== null) ? (int) $width : null;
-                    $height = ($height !== null) ? (int) $height : null;
-                    $options = ($options instanceof Arrayable) ? $options->toArray() : (array) $options;
-
-                    return $resizer->resizePermalink($identifier, $width, $height, $options)->permalink_url;
-                },
-                'modifyPermalink' => function ($identifier, $image, $options = []) {
-                    $resizer = new Resizer((string) $image);
-
-                    $width = null;
-                    $height = null;
-                    $options = ($options instanceof Arrayable) ? $options->toArray() : (array) $options;
-
-                    return $resizer->resizePermalink($identifier, $width, $height, $options)->permalink_url;
-                },
                 'resize' => function ($image, $width, $height = null, $options = []) {
                     $resizer = new Resizer((string) $image);
 
                     $width = ($width !== null) ? (int) $width : null;
                     $height = ($height !== null) ? (int) $height : null;
                     $options = ($options instanceof Arrayable) ? $options->toArray() : (array) $options;
+
+                    // If the given configuration has a permalink identifier then resize using it
+                    if (isset($options['permalink']) && strlen($options['permalink'])) {
+                        return $resizer->resizePermalink($options['permalink'], $width, $height, $options)->permalink_url;
+                    }
 
                     return $resizer->resize($width, $height, $options);
                 },
@@ -74,6 +61,11 @@ class Plugin extends PluginBase
                     $width = null;
                     $height = null;
                     $options = ($options instanceof Arrayable) ? $options->toArray() : (array) $options;
+
+                    // If the given configuration has a permalink identifier then resize using it
+                    if (isset($options['permalink']) && strlen($options['permalink'])) {
+                        return $resizer->resizePermalink($options['permalink'], $width, $height, $options)->permalink_url;
+                    }
 
                     return $resizer->resize($width, $height, $options);
                 },

@@ -3,6 +3,7 @@
 namespace ABWebDevelopers\ImageResize\Models;
 
 use ABWebDevelopers\ImageResize\Classes\Resizer;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Builder;
 use Model;
 
@@ -33,6 +34,28 @@ class ImagePermalink extends Model
     public function __toString()
     {
         return $this->permalink_url;
+    }
+
+    /**
+     * Get an ImagePermalink class by the given identifier (and provide
+     * defaults for when not resized yet: width, height, options)
+     *
+     * @param string $identifier
+     * @param string $image
+     * @param integer $width
+     * @param integer $height
+     * @param array $options
+     * @return ImagePermalink
+     */
+    public static function getPermalink(string $identifier, string $image, int $width = null, int $height = null, array $options = []): ImagePermalink
+    {
+        $resizer = new Resizer((string) $image);
+
+        $width = ($width !== null) ? (int) $width : null;
+        $height = ($height !== null) ? (int) $height : null;
+        $options = ($options instanceof Arrayable) ? $options->toArray() : (array) $options;
+
+        return $resizer->resizePermalink($identifier, $width, $height, $options)->permalink_url;
     }
 
     /**
@@ -138,6 +161,26 @@ class ImagePermalink extends Model
         exit();
     }
 
+    /**
+     * Get a default 404 image not found mock permalink
+     *
+     * @return ImagePermalink
+     */
+    public static function defaultNotFound(): ImagePermalink
+    {
+        $identifier = '404';
+        $resizer = Resizer::using('');
+
+        return static::fromResizer($identifier, $resizer);
+    }
+
+    /**
+     * Initialise an ImagePermalink from the given Resizer instance
+     *
+     * @param string $identifier
+     * @param Resizer $resizer
+     * @return ImagePermalink
+     */
     public static function fromResizer(string $identifier, Resizer $resizer): ImagePermalink
     {
         $that = static::withIdentifer($identifier);
@@ -145,10 +188,11 @@ class ImagePermalink extends Model
         if ($that === null) {
             $that = new static();
 
-            list($mime, $format) = $resizer->detectFormat(true);
-
             $that->identifier = $identifier;
             $that->image = $resizer->getImagePath();
+
+            list($mime, $format) = $resizer->detectFormat(true);
+
             $that->mime_type = 'image/' . $mime;
             $that->extension = $format;
             $that->options = $resizer->getOptions();
