@@ -46,3 +46,5 @@
 2.2.0:
   - Added optional permalinks for images to ensure image URLs always yield the same image after cache flushes
   - create_permalinks_table.php
+2.2.1:
+  - Fix issue where REMOTE_ADDR server variable is not set when running through CLI

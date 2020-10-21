@@ -129,11 +129,13 @@ class Resizer
             }
 
             // Check if the image is an absolute url to the same server, if so get the storage path of the image
-            $regex = '/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '(?::\d+)?\/(.+)$/';
-            if (preg_match($regex, $image, $m)) {
-                // Convert spaces, not going to urldecode as it will mess with pluses
-                $image = base_path(str_replace('%20', ' ', $m[1]));
-                $absolutePath = true;
+            if (!empty($_SERVER['SERVER_NAME'])) {
+                $regex = '/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '(?::\d+)?\/(.+)$/';
+                if (preg_match($regex, $image, $m)) {
+                    // Convert spaces, not going to urldecode as it will mess with pluses
+                    $image = base_path(str_replace('%20', ' ', $m[1]));
+                    $absolutePath = true;
+                }
             }
 
             // If not an absolute path, set it to an absolute path
