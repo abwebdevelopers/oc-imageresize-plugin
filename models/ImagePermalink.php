@@ -86,8 +86,6 @@ class ImagePermalink extends Model
 
             $path = $resizer->getRelativePath();
 
-            list($mime, $format) = $resizer->detectFormat(true);
-
             $this->path = $path;
             $this->resized_at = now();
             $this->save();
