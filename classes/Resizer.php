@@ -2,6 +2,7 @@
 
 namespace ABWebDevelopers\ImageResize\Classes;
 
+use ABWebDevelopers\ImageResize\Models\ImagePermalink;
 use ABWebDevelopers\ImageResize\Models\Settings;
 use Cache;
 use Carbon\Carbon;
@@ -334,6 +335,16 @@ class Resizer
     }
 
     /**
+     * Get the options defined in this resizer
+     *
+     * @return array
+     */
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
+    /**
      * Get the absolute physical path of the image
      *
      * @return string
@@ -358,7 +369,7 @@ class Resizer
      *
      * @return string
      */
-    private function getRelativePath(): string
+    public function getRelativePath(): string
     {
         $rel = '/' . substr($this->hash, 0, 3) .
             '/' . substr($this->hash, 3, 3) .
@@ -464,6 +475,31 @@ class Resizer
 
         // Get cache if exists
         return $this->storeCacheAndgetFirstTimeUrl();
+    }
+
+    /**
+     * Resize - Optionally resize the image, and/or modify the image with options.
+     *
+     * This implements a permalink class and does not resize until first accessed
+     *
+     * @param int $width
+     * @param int $height
+     * @param array $options
+     * @return ImagePermalink
+     */
+    public function resizePermalink(string $identifier, int $width = null, int $height = null, array $options = []): ImagePermalink
+    {
+        $width = ($width > 0) ? $width : null;
+        $height = ($height > 0) ? $height : null;
+
+        // Fill these keys in, as it'll be used to help identify the cache
+        $options['width'] = $width;
+        $options['height'] = $height;
+
+        // Set options, set hash for cache
+        $this->initOptions($options);
+
+        return ImagePermalink::fromResizer($identifier, $this);
     }
 
     /**
@@ -677,7 +713,7 @@ class Resizer
      * @param  array $options
      * @return array
      */
-    private function detectFormat(bool $useNewFormat = false): array
+    public function detectFormat(bool $useNewFormat = false): array
     {
         // Convert standard boolean to numeric boolean (for array access)
         $useNewFormat = ($useNewFormat) ? 1 : 0;
@@ -934,19 +970,19 @@ class Resizer
 
     /**
      * Parse a given HTML string for images and replace them with the resized copies as per the given modifications.
-     * 
+     *
      * CAUTION: Experimental
      *
      * This uses regex to find and replace HTML content which is often frowned upon. You may supply your own custom
      * regexes, or you may rely on the defaults (which may change in future versions of this plugin soo beware).
-     * 
+     *
      * By default this will search img elements with a src, data-src or lazy-src attribute, as well as any "style"
      * attribute with a background or background-image CSS rule (of which contains a "url()" to an image)
-     * 
+     *
      * Example Usage (a richeditor field that contains custom embedded images that require OTF optimisation or resizing):
      *      {{ service.description | filterHtmlImageResize(600, 600, { mode: 'contain' }) }}
      *      {{ service.description | filterHtmlImageModifiy({ quality: 60 }) }}
-     * 
+     *
      * @param string $html The HTML to find/replace images
      * @param int|null $width
      * @param int|null $height

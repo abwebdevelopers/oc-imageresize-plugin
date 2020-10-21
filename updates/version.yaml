@@ -43,3 +43,6 @@
   - Added twig filter to parse and resize/modify images (via regex) using twig filter(s)
 2.1.9:
   - Improvement to the detection of the original image's mime type (uses less system resources)
+2.2.0:
+  - Added optional permalinks for images to ensure image URLs always yield the same image after cache flushes
+  - create_permalinks_table.php

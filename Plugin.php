@@ -5,6 +5,8 @@ namespace ABWebDevelopers\ImageResize;
 use ABWebDevelopers\ImageResize\Classes\Resizer;
 use ABWebDevelopers\ImageResize\Commands\ImageResizeClear;
 use ABWebDevelopers\ImageResize\Commands\ImageResizeGc;
+use ABWebDevelopers\ImageResize\Commands\ImageResizeResetPermalinks;
+use ABWebDevelopers\ImageResize\Models\ImagePermalink;
 use ABWebDevelopers\ImageResize\Models\Settings;
 use ABWebDevelopers\ImageResize\ReportWidgets\ImageResizeClearWidget;
 use App;
@@ -39,6 +41,24 @@ class Plugin extends PluginBase
     {
         return [
             'filters' => [
+                'resizePermalink' => function ($image, $identifier, $width, $height = null, $options = []) {
+                    $resizer = new Resizer((string) $image);
+
+                    $width = ($width !== null) ? (int) $width : null;
+                    $height = ($height !== null) ? (int) $height : null;
+                    $options = ($options instanceof Arrayable) ? $options->toArray() : (array) $options;
+
+                    return $resizer->resizePermalink($identifier, $width, $height, $options)->permalink_url;
+                },
+                'modifyPermalink' => function ($identifier, $image, $options = []) {
+                    $resizer = new Resizer((string) $image);
+
+                    $width = null;
+                    $height = null;
+                    $options = ($options instanceof Arrayable) ? $options->toArray() : (array) $options;
+
+                    return $resizer->resizePermalink($identifier, $width, $height, $options)->permalink_url;
+                },
                 'resize' => function ($image, $width, $height = null, $options = []) {
                     $resizer = new Resizer((string) $image);
 
@@ -146,6 +166,7 @@ class Plugin extends PluginBase
     {
         $this->registerConsoleCommand('imageresize:gc', ImageResizeGc::class);
         $this->registerConsoleCommand('imageresize:clear', ImageResizeClear::class);
+        $this->registerConsoleCommand('imageresize:reset-permalink', ImageResizeResetPermalinks::class);
     }
 
     /**
@@ -172,7 +193,7 @@ class Plugin extends PluginBase
 
     /**
      * Run the callback only if/when the database exists (and system_settings table exists).
-     * 
+     *
      * @param \Closure $callback
      * @return mixed
      */

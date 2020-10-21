@@ -1,6 +1,7 @@
 <?php
 
 use ABWebDevelopers\ImageResize\Classes\Resizer;
+use ABWebDevelopers\ImageResize\Models\ImagePermalink;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -24,3 +25,12 @@ Route::get('imageresize/{hash}.{ext}', function (string $hash, string $ext) {
         ->doResize()
         ->render();
 });
+
+/**
+ * Publicly accessible URL for permalink image using an identifier/ext.
+ */
+Route::get('imageresizestatic/{identifier}.{ext}', function (string $identifier, string $ext) {
+    $perma = ImagePermalink::withIdentifer($identifier);
+
+    return $perma->render();
+})->where('identifier', '(.+?)');
