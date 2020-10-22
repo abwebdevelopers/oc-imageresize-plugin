@@ -17,8 +17,8 @@ class CreatePermalinksTable extends Migration
                 $table->text('image');
                 $table->string('mime_type');
                 $table->string('extension');
-                $table->text('options')->default('{}');
-                $table->text('path')->nullable()->default(null);
+                $table->text('options');
+                $table->text('path');
                 $table->dateTime('resized_at')->nullable()->default(null);
 
                 $table->timestamps();

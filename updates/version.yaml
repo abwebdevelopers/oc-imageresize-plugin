@@ -48,3 +48,5 @@
   - create_permalinks_table.php
 2.2.1:
   - Fix issue where REMOTE_ADDR server variable is not set when running through CLI
+2.2.2:
+  - Fix MySQL issue where text fields had default values
