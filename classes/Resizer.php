@@ -222,15 +222,21 @@ class Resizer
             $image = Settings::getDefaultImageNotFound(true);
         }
 
-        // Use the default Image Not Found background, mode and quality
+        // Use the default Image Not Found background
         $this->options['background'] = Settings::get('image_not_found_background', '#fff');
+
+        // If the 404 image should be transparent then remove the default background
         if (Settings::get('image_not_found_transparent')) {
             unset($this->options['background']);
         }
+
+        // If the 404 image format is not auto then apply this format
         $format = Settings::get('image_not_found_format', 'auto');
         if ($format !== 'auto') {
             $this->options['format'] = $format;
         }
+
+        // Apply 404 image mode and quality
         $this->options['mode'] = Settings::get('image_not_found_mode', 'cover');
         $this->options['quality'] = Settings::get('image_not_found_quality', 65);
 
