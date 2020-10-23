@@ -788,7 +788,7 @@ class Resizer
     /**
      * Prevent the Resizer from defaulting the image
      *
-     * @return void
+     * @return $this
      */
     public function preventDefaultImage()
     {
@@ -800,7 +800,7 @@ class Resizer
     /**
      * Prevent the Resizer from defaulting the image
      *
-     * @return void
+     * @return $this
      */
     public function allowDefaultImage()
     {

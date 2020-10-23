@@ -2,7 +2,6 @@
 
 namespace ABWebDevelopers\ImageResize\Commands;
 
-use ABWebDevelopers\ImageResize\Classes\Resizer;
 use ABWebDevelopers\ImageResize\Models\ImagePermalink;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
