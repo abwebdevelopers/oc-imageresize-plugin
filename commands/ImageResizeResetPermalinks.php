@@ -19,6 +19,6 @@ class ImageResizeResetPermalinks extends Command
         // Delete all permalinks
         ImagePermalink::query()->delete();
 
-        $this->info('Successfully deleted ' . $deleted . ' ' . Str::plural('permalinks', $deleted));
+        $this->info('Successfully deleted ' . $deleted . ' ' . Str::plural('permalink', $deleted));
     }
 }
