@@ -37,22 +37,6 @@ class ImagePermalink extends Model
     }
 
     /**
-     * Set default for options (empty array) and path (empty string) on save
-     *
-     * @return void
-     */
-    public function beforeSave()
-    {
-        if (is_null($this->options)) {
-            $this->options = [];
-        }
-
-        if (is_null($this->path)) {
-            $this->path = '';
-        }
-    }
-
-    /**
      * Get an ImagePermalink class by the given identifier (and provide
      * defaults for when not resized yet: width, height, options)
      *
@@ -172,7 +156,7 @@ class ImagePermalink extends Model
     {
         $this->resize(); // if not resized
 
-        header('Content-Type: ' . $this->mime);
+        header('Content-Type: ' . $this->mime_type);
         header('Content-Length: ' . filesize($this->absolute_path));
         echo file_get_contents($this->absolute_path);
         exit();
@@ -205,14 +189,15 @@ class ImagePermalink extends Model
         if ($that === null) {
             $that = new static();
 
+            $resizer->preventDefaultImage();
             $that->identifier = $identifier;
-            $that->image = $resizer->getImagePath();
+            $that->image = $resizer->getImagePathRelativePreferred();
 
             list($mime, $format) = $resizer->detectFormat(true);
 
             $that->mime_type = 'image/' . $mime;
             $that->extension = $format;
-            $that->options = $resizer->getOptions();
+            $that->options = $resizer->getCacheableOptions();
 
             $that->save();
         }

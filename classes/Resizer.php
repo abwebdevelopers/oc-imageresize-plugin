@@ -32,6 +32,13 @@ class Resizer
     protected $options = [];
 
     /**
+     * The list of cacheable options (i.e. those specified, excl defaults)
+     *
+     * @var array
+     */
+    protected $cacheableOptions = [];
+
+    /**
      * The original image resource
      *
      * @var resource
@@ -65,6 +72,13 @@ class Resizer
      * @var array
      */
     protected $formatCache = [];
+
+    /**
+     * Can this Resizer default the image (when the image doesn't exist, for example)
+     *
+     * @var boolean
+     */
+    protected $allowDefaultImage = true;
 
     /**
      * Construct the resizer class
@@ -128,14 +142,18 @@ class Resizer
                 }
             }
 
+            // Get the domain
+            $domain = $_SERVER['SERVER_NAME'] ?? '';
+            if (empty($domain)) {
+                $domain = parse_url(url()->to('/'), PHP_URL_HOST);
+            }
+
             // Check if the image is an absolute url to the same server, if so get the storage path of the image
-            if (!empty($_SERVER['SERVER_NAME'])) {
-                $regex = '/^(?:https?:\/\/)?' . $_SERVER['SERVER_NAME'] . '(?::\d+)?\/(.+)$/';
-                if (preg_match($regex, $image, $m)) {
-                    // Convert spaces, not going to urldecode as it will mess with pluses
-                    $image = base_path(str_replace('%20', ' ', $m[1]));
-                    $absolutePath = true;
-                }
+            $regex = '/^(?:https?:\/\/)?' . $domain . '(?::\d+)?\/(.+)$/';
+            if (preg_match($regex, $image, $m)) {
+                // Convert spaces, not going to urldecode as it will mess with pluses
+                $image = base_path(str_replace('%20', ' ', $m[1]));
+                $absolutePath = true;
             }
 
             // If not an absolute path, set it to an absolute path
@@ -159,9 +177,26 @@ class Resizer
     {
         $image = $this->image;
 
-        // If the image is invalid, default to Image Not Found
-        if ($image === null || $image === '' || !file_exists($image)) {
-            $image = $this->getDefaultImage();
+        if ($this->allowDefaultImage) {
+            // If the image is invalid, default to Image Not Found
+            if ($image === null || $image === '' || !file_exists($image)) {
+                $image = $this->getDefaultImage();
+            }
+        }
+
+        return $image;
+    }
+
+    /**
+     * Get the path to the image (relative path preferred)
+     */
+    public function getImagePathRelativePreferred(): string
+    {
+        $image = $this->getImagePath();
+        $base = rtrim(base_path(), '/');
+
+        if (Str::startsWith($image, $base)) {
+            $image = ltrim(substr($image, strlen($base)), '/');
         }
 
         return $image;
@@ -189,6 +224,13 @@ class Resizer
 
         // Use the default Image Not Found background, mode and quality
         $this->options['background'] = Settings::get('image_not_found_background', '#fff');
+        if (Settings::get('image_not_found_transparent')) {
+            unset($this->options['background']);
+        }
+        $format = Settings::get('image_not_found_format', 'auto');
+        if ($format !== 'auto') {
+            $this->options['format'] = $format;
+        }
         $this->options['mode'] = Settings::get('image_not_found_mode', 'cover');
         $this->options['quality'] = Settings::get('image_not_found_quality', 65);
 
@@ -236,9 +278,22 @@ class Resizer
             ]);
 
             try {
+                // Default the image if it's a directory
+                if (is_dir($this->image)) {
+                    throw new \Exception('Image file does not exist (is directory)');
+                }
+
+                // Default the image if it doesn't exist
+                if (is_dir($this->image)) {
+                    throw new \Exception('Image file does not exist (not found)');
+                }
+
                 $this->im = $this->original = Image::make($this->image);
             } catch (\Exception $e) {
-                $this->im = $this->original = Image::make($this->getDefaultImage());
+                if ($this->allowDefaultImage) {
+                    $this->setFormatCache([]);
+                    $this->im = $this->original = Image::make($this->image = $this->getDefaultImage());
+                }
             }
         }
 
@@ -327,6 +382,9 @@ class Resizer
             'format' => Settings::get('format'),
         ];
 
+        // Don't cache defaults
+        $this->cacheableOptions = $options;
+
         // Merge defaults and options
         $this->options = array_merge($defaults, $options);
 
@@ -344,6 +402,16 @@ class Resizer
     public function getOptions(): array
     {
         return $this->options;
+    }
+
+    /**
+     * Get the options defined in this resizer, excluding defaults
+     *
+     * @return array
+     */
+    public function getCacheableOptions(): array
+    {
+        return $this->cacheableOptions;
     }
 
     /**
@@ -499,6 +567,9 @@ class Resizer
         // Fill these keys in, as it'll be used to help identify the cache
         $options['width'] = $width;
         $options['height'] = $height;
+
+        // Don't need to cache this
+        unset($options['permalink']);
 
         // Set options, set hash for cache
         $this->initOptions($options);
@@ -709,6 +780,30 @@ class Resizer
     }
 
     /**
+     * Prevent the Resizer from defaulting the image
+     *
+     * @return void
+     */
+    public function preventDefaultImage()
+    {
+        $this->allowDefaultImage = false;
+
+        return $this;
+    }
+
+    /**
+     * Prevent the Resizer from defaulting the image
+     *
+     * @return void
+     */
+    public function allowDefaultImage()
+    {
+        $this->allowDefaultImage = false;
+
+        return $this;
+    }
+
+    /**
      * Detect format of input file for default export format
      *
      * Return value is: [mime, format]
@@ -731,8 +826,21 @@ class Resizer
         if ($useNewFormat && !empty($this->options['format']) && ($this->options['format'] !== 'auto')) {
             $format = $this->options['format'];
         } else {
-            $format = File::mimeType($this->getImagePath());
-            $format = Str::after($format, '/');
+            if (File::exists($path = $this->getImagePath())) {
+                $format = File::mimeType($path);
+                $format = Str::after($format, '/');
+            } else {
+                // If the file doesn't exist then inherit from the new format
+                $format = $this->options['format'];
+                // If the new format is automatic, then use the default 404 image format (otherwise jpg)
+                if ($format === 'auto') {
+                    $format = Settings::get('image_not_found_format', 'auto');
+                    // And lastly, if you have nothing defined you can get a JPG
+                    if ($format === 'auto') {
+                        $format = 'jpg';
+                    }
+                }
+            }
         }
 
         // For the most part, the mime is the format: image/{format}

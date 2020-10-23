@@ -52,6 +52,10 @@ return [
                 'label' => '404 Image Background Color',
                 'comment' => 'Background color for the image above',
             ],
+            'image_not_found_transparent' => [
+                'label' => '404 Image Transparent?',
+                'comment' => 'Should the 404 image be transparent?',
+            ],
             'image_not_found_mode' => [
                 'label' => '404 Image Resize Mode',
                 'comment' => 'Resizing mode for image above',
