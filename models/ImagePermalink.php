@@ -37,6 +37,22 @@ class ImagePermalink extends Model
     }
 
     /**
+     * Set default for options (empty array) and path (empty string) on save
+     *
+     * @return void
+     */
+    public function beforeSave()
+    {
+        if (is_null($this->options)) {
+            $this->options = [];
+        }
+
+        if (is_null($this->path)) {
+            $this->path = '';
+        }
+    }
+
+    /**
      * Get an ImagePermalink class by the given identifier (and provide
      * defaults for when not resized yet: width, height, options)
      *
