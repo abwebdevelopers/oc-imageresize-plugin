@@ -216,6 +216,18 @@ class ImagePermalink extends Model
             $that->options = $resizer->getCacheableOptions();
 
             $that->save();
+        } elseif ($that->resizeExists() === false) {
+            // In the case where the resize doesn't exist (typically after cache:flush) we want
+            // to update the image reference as well as options.
+            $that->image = $resizer->getImagePathRelativePreferred();
+
+            list($mime, $format) = $resizer->detectFormat(true);
+
+            $that->mime_type = 'image/' . $mime;
+            $that->extension = $format;
+            $that->options = $resizer->getCacheableOptions();
+
+            $that->save();
         }
 
         return $that;
