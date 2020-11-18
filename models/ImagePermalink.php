@@ -172,7 +172,7 @@ class ImagePermalink extends Model
     {
         $this->resize(); // if not resized
 
-        header('Content-Type: ' . $this->mime);
+        header('Content-Type: ' . $this->mime_type);
         header('Content-Length: ' . filesize($this->absolute_path));
         echo file_get_contents($this->absolute_path);
         exit();
@@ -205,14 +205,27 @@ class ImagePermalink extends Model
         if ($that === null) {
             $that = new static();
 
+            $resizer->preventDefaultImage();
             $that->identifier = $identifier;
-            $that->image = $resizer->getImagePath();
+            $that->image = $resizer->getImagePathRelativePreferred();
 
             list($mime, $format) = $resizer->detectFormat(true);
 
             $that->mime_type = 'image/' . $mime;
             $that->extension = $format;
-            $that->options = $resizer->getOptions();
+            $that->options = $resizer->getCacheableOptions();
+
+            $that->save();
+        } elseif ($that->resizeExists() === false) {
+            // In the case where the resize doesn't exist (typically after cache:flush) we want
+            // to update the image reference as well as options.
+            $that->image = $resizer->getImagePathRelativePreferred();
+
+            list($mime, $format) = $resizer->detectFormat(true);
+
+            $that->mime_type = 'image/' . $mime;
+            $that->extension = $format;
+            $that->options = $resizer->getCacheableOptions();
 
             $that->save();
         }

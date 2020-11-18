@@ -2,7 +2,6 @@
 
 namespace ABWebDevelopers\ImageResize\Commands;
 
-use ABWebDevelopers\ImageResize\Classes\Resizer;
 use ABWebDevelopers\ImageResize\Models\ImagePermalink;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -20,6 +19,6 @@ class ImageResizeResetPermalinks extends Command
         // Delete all permalinks
         ImagePermalink::query()->delete();
 
-        $this->info('Successfully deleted ' . $deleted . ' ' . Str::plural('permalinks', $deleted));
+        $this->info('Successfully deleted ' . $deleted . ' ' . Str::plural('permalink', $deleted));
     }
 }

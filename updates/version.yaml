@@ -50,3 +50,5 @@
   - Fix issue where REMOTE_ADDR server variable is not set when running through CLI
 2.2.2:
   - Fix MySQL issue where text fields had default values
+2.2.3:
+  - Improvements to Permalinks

@@ -84,6 +84,12 @@ tabs:
                 cover: 'abwebdevelopers.imageresize::lang.settings.fields.mode.options.cover'
                 stretch: 'abwebdevelopers.imageresize::lang.settings.fields.mode.options.stretch'
             default: contain
+        image_not_found_transparent:
+            label: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_transparent.label'
+            comment: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_transparent.comment'
+            tab: 'abwebdevelopers.imageresize::lang.settings.tabs.main'
+            span: right
+            type: checkbox
         image_not_found_format:
             label: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_format.label'
             comment: 'abwebdevelopers.imageresize::lang.settings.fields.image_not_found_format.comment'
