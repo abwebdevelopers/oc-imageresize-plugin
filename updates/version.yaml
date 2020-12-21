@@ -52,3 +52,5 @@
   - Fix MySQL issue where text fields had default values
 2.2.3:
   - Improvements to Permalinks
+2.2.4:
+  - Fix exception when directory doesn't exist during cache clear

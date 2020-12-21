@@ -1051,6 +1051,11 @@ class Resizer
     {
         $directory = $directory ?? Settings::getBasePath();
 
+        // Skip if the directory doesn't exist
+        if (!is_dir($directory)) {
+            return 0;
+        }
+
         $files = collect(File::allFiles($directory))
             ->transform(function ($file) use ($minAge) {
                 $delete = true;
