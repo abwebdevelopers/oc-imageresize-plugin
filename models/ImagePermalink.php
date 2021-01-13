@@ -164,6 +164,22 @@ class ImagePermalink extends Model
     }
 
     /**
+     * If the resized copy of this image exists, delete it.
+     *
+     * @return $this
+     */
+    public function deleteResize()
+    {
+        if ($this->resizeExists()) {
+            unlink($this->absolute_path);
+        }
+
+        $this->path = null;
+
+        return $this;
+    }
+
+    /**
      * Render this image to screen, now.
      *
      * @return void
@@ -216,10 +232,13 @@ class ImagePermalink extends Model
             $that->options = $resizer->getCacheableOptions();
 
             $that->save();
-        } elseif ($that->resizeExists() === false) {
+        } elseif (($that->resizeExists() === false) || empty($that->image)) {
             // In the case where the resize doesn't exist (typically after cache:flush) we want
             // to update the image reference as well as options.
             $that->image = $resizer->getImagePathRelativePreferred();
+
+            // If resize exists, delete the resized copy
+            $that->deleteResize();
 
             list($mime, $format) = $resizer->detectFormat(true);
 

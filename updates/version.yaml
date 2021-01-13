@@ -54,3 +54,5 @@
   - Improvements to Permalinks
 2.2.4:
   - Fix exception when directory doesn't exist during cache clear
+2.2.5:
+  - Fix regeneration of permalink images that previously defaulted to 404 image
