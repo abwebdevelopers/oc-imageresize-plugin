@@ -29,7 +29,7 @@ class CreatePermalinksTable extends Migration
     public function down()
     {
         if (Schema::hasTable('abweb_imageresize_permalinks') === true) {
-            Schema::dropTable('abweb_imageresize_permalinks');
+            Schema::drop('abweb_imageresize_permalinks');
         }
     }
 }
