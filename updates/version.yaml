@@ -56,3 +56,5 @@
   - Fix exception when directory doesn't exist during cache clear
 2.2.5:
   - Fix regeneration of permalink images that previously defaulted to 404 image
+2.3.0:
+  - Add Orientate Option to read exif and orientate automatically

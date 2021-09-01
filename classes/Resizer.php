@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Exception;
 use Event;
 use File;
+use Log;
 use Intervention\Image\ImageManagerStatic as Image;
 use Validator;
 use Illuminate\Support\Str;
@@ -294,7 +295,19 @@ class Resizer
                     throw new \Exception('Image file does not exist (not found)');
                 }
 
-                $this->im = $this->original = Image::make($this->image);
+                // Auto Rotate based on exif data
+                if ($this->options['orientate'] ?? false) {
+                    try {
+                        $this->im = $this->original = Image::make($this->image)->orientate();
+                    } catch (\Throwable $e) {
+                        Log::debug('Failed to fix orientation for image ' . $this->getImagePath() . ' (Is PHP compiled with `--enable-exif`?)');
+                    }
+                }
+
+                // If no orientation requested (or orientation failed)
+                if (empty($this->im)) {
+                    $this->im = $this->original = Image::make($this->image);
+                }
             } catch (\Exception $e) {
                 if ($this->allowDefaultImage) {
                     $this->setFormatCache([]);
